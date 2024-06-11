@@ -34,12 +34,12 @@ const userSchema = new mongoose.Schema({
             }
         }
     },
-    tokens: [{
-        token: {
-            type: String,
-            required: true
-        }
-    }],
+    // tokens: [{
+    //     token: {
+    //         type: String,
+    //         required: true
+    //     }
+    // }],
 },
 {
     timestamps: true
@@ -57,12 +57,14 @@ userSchema.methods.toJSON = function () {
 
 userSchema.methods.generateAuthToken = async function() {
     const user = this;
-    const token = jwt.sign({ _id: user._id.toString(), email: user.email, username: user.username }, process.env.SECRET_KEY);
-
-    user.tokens = user.tokens.concat({ token });
-    await user.save().then(() => { 
-        console.log("saved");
-    })
+    
+    const jwt_payload = { _id: user._id.toString(), email: user.email, username: user.username };
+    const token = jwt.sign(jwt_payload, process.env.SECRET_KEY, { expiresIn: '5m'});
+    await user.save();
+    // user.tokens = user.tokens.concat({ token });
+    // await user.save().then(() => { 
+    //     console.log("saved");      //CHECK LATER
+    // })
 
     return token;
 }
