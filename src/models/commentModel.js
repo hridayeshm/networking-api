@@ -7,7 +7,7 @@ const commentSchema = new mongoose.Schema({
         required: true,
         ref: 'Post'
     },
-    user: {
+    author: {
         type:mongoose.Schema.Types.ObjectId,
         required: true,
         ref: 'User'
@@ -18,3 +18,5 @@ const commentSchema = new mongoose.Schema({
 })
 
 const Comment = mongoose.model('Comment', commentSchema);
+
+module.exports = Comment;
