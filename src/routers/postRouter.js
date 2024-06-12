@@ -4,17 +4,17 @@ const Post = require("../models/postModel");
 const auth = require("../middlewares/auth");
 
 router.post("/user/post", auth, async (req, res) => {
-    const { title, description } = req.body;
-    const ownerId = req.user._id;
-  
-    try {
-      const post = new Post({ title, description, owner: ownerId });
-      await post.save();
-  
-      res.send(post);
-    } catch (err) {
-      console.log(err);
-    }
+
+    const values = { title :req.body.title, description: req.body.description,owner: ownerId};
+    //const  CONTINUE
+    // try {
+    //   const post = new Post({ title, description, owner: ownerId });
+    //   await post.save();
+   
+    //   res.send(post);
+    // } catch (err) {
+    //   console.log(err);
+    // }
   });
   
   router.get("/user/post/all", auth, async (req, res) => {

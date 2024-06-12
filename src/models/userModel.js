@@ -59,7 +59,7 @@ userSchema.methods.generateAuthToken = async function() {
     const user = this;
     
     const jwt_payload = { _id: user._id.toString(), email: user.email, username: user.username };
-    const token = jwt.sign(jwt_payload, process.env.SECRET_KEY,{expiresIn:'2m'});
+    const token = jwt.sign(jwt_payload, process.env.SECRET_KEY);
     await user.save();
     // user.tokens = user.tokens.concat({ token });
     // await user.save().then(() => { 
@@ -69,21 +69,21 @@ userSchema.methods.generateAuthToken = async function() {
     return token;
 }
 
-userSchema.statics.findUserByCredentials = async function(email, password) {
-    const user = await User.findOne({email});
+// userSchema.statics.findUserByCredentials = async function(email, password) {
+//     const user = await User.findOne({email});
 
-    if(!user){
-        throw new Error("Unable to login");
-    }
+//     if(!user){
+//         throw new Error("Unable to login");
+//     }
 
-    const isMatch = await bcrypt.compare(password, user.password);
+//     const isMatch = await bcrypt.compare(password, user.password);
 
-    if(!isMatch){
-        throw new Error('Login with correct email and password');
-    }
+//     if(!isMatch){
+//         throw new Error('Login with correct email and password');
+//     }
 
-    return user;
-}
+//     return user;
+// }
 
 userSchema.pre('save', async function (next) {
     const user = this;
