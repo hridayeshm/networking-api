@@ -2,69 +2,62 @@ const express = require("express");
 const auth = require("../middlewares/auth");
 const router = express.Router();
 const Comment = require("../models/commentModel");
+const CommentController = require("../controllers/commentController");
 
-router.post("/comment/post/:id", auth, async(req,res) => {
-    const postId = req.params.id;
-    const authorId = req.user._id; 
-    const content = req.body.content;
-    try{
-    const comment = new Comment({post: postId, author: authorId, content});
-  
-        await comment.save();
-        res.send(comment);
-    }catch(err){
-        console.log(err);
-        res.send(err);
-    }
+router.post("/comment/post/:id", auth, async (req, res) => {
+  try {
+    const values = {
+      post: req.params.id,
+      author: req.user._id,
+      content: req.body.content,
+    };
+    const commentController = new CommentController();
+    const comment = await commentController.addComment(values);
+    res.send(comment);
+  } catch (err) {
+    res.send(err);
+  }
 });
 
-router.get("/comments/post/:id", auth, async(req,res) => {
-    const postId = req.params.id;
-    
-    try{
-        const comments = await Comment.find({post:postId});
-        if(!comments){
-            return res.send("no comments found for the post or incorrect post entered")
-        }
-        res.send(comments);
-    }catch(err){
-        res.send(err);
-    }
-    
+router.get("/comments/post/:id", auth, async (req, res) => {
+  try {
+    const values = {
+      post: req.params.id,
+    };
+    const commentController = new CommentController();
+    const comments = await commentController.viewComments(values);
+    res.send(comments);
+  } catch (err) {}
 });
 
-router.patch("/comment/update/:id", auth, async(req,res) => {
+router.patch("/comment/update/:id", auth, async (req, res) => {
+  try {
+    const values = {
+      post: req.params.id,
+      author: req.user._id,
+      content: req.body.content,
+    };
 
-    const cmtId = req.params.id;
-    const authorId = req.user._id;
-    const updates = req.body;
-
-    try{
-        const comment = await Comment.findOneAndUpdate({ _id: cmtId, author:authorId}, updates ,{new:true});
-        if(!comment){ 
-            return res.send("comment to be updated not found");}
-        await comment.save();
-        res.send(comment);
-    }   catch(err){
-        res.send(err);   
-    }
-
+    const commentController = new CommentController();
+    const updatedComment = await commentController.updateComment(values);
+    res.send(updatedComment);
+  } catch (err) {
+    res.send(err.message);
+  }
 });
 
-router.delete("/comment/delete/:id", auth, async(req,res) => {
-    const cmtId = req.params.id;
-    const authorId = req.user._id;
-
-    try{
-        const comment = await Comment.findOneAndDelete({_id: cmtId, author: authorId});
-        if(!comment){
-            return res.send("comment to be deleted not found");
-        }
-        res.send(comment);
-    }catch(err){
-        res.send(err);
-    }
-
+router.delete("/comment/delete/:id", auth, async (req, res) => {
+  try {
+    const values = {
+      _id: req.params.id,
+      author: req.user._id,
+    };
+    const commentController = new CommentController();
+    const deletedComment = await commentController.deleteComment(values);
+    res.send(deletedComment);
+  } catch (err) {
+    res.send(err.message);
+  }
 });
 
-module.exports = router
+module.exports = router;

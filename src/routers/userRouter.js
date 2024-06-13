@@ -27,11 +27,9 @@ router.post("/users/login", async (req, res) => {
     const token = await user.generateAuthToken();
     res.send({ user, token });
   } catch (err) {
-    res.send(err);
+    res.send(err.message);
   }
 });
-
-
 
 // router.get("/users/:id", async (req, res) => {
 //   console.log(req.params.id);

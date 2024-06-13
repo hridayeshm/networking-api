@@ -2,84 +2,73 @@ const express = require("express");
 const router = express.Router();
 const Post = require("../models/postModel");
 const auth = require("../middlewares/auth");
+const PostController = require("../controllers/postController");
 
 router.post("/user/post", auth, async (req, res) => {
+  try {
+    const values = {
+      title: req.body.title,
+      description: req.body.description,
+      owner: req.user._id,
+    };
+    const postController = new PostController();
+    const post = await postController.createPost(values);
+    res.send(post);
+  } catch (err) {
+    res.send(err);
+  }
+});
 
-    const values = { title :req.body.title, description: req.body.description,owner: ownerId};
-    //const  CONTINUE
-    // try {
-    //   const post = new Post({ title, description, owner: ownerId });
-    //   await post.save();
-   
-    //   res.send(post);
-    // } catch (err) {
-    //   console.log(err);
-    // }
-  });
-  
-  router.get("/user/post/all", auth, async (req, res) => {
-    try {
-      const post = await Post.find({ owner: req.user._id });
-  
-      if (!post) {
-        return res.send("post not found");
-      }
-  
-      res.send(post);
-    } catch (err) {
-      res.send(err);
-    }
-  });
-  
-  router.get("/user/post/:id", auth, async(req,res) => {
-    const postId = req.params.id;
-    const ownerId = req.user._id;
-    try{
-      const post = await Post.findOne({_id: postId, owner: ownerId});
-  
-      if(!post){
-        return res.send("post not found");
-      }
-      res.send(post);
-    }catch(err){
-      res.send(err);
-    }
-  });
-  
-  router.patch("/user/post/:id", auth, async (req, res) => {
-    const postId = req.params.id;
+router.get("/user/post/all", auth, async (req, res) => {
+  try {
+    const values = { owner: req.user._id };
+    const postController = new PostController();
+    const post = await postController.getAllPosts(values);
+    res.send(post);
+  } catch (err) {
+    res.send(err.message);
+  }
+});
+
+router.get("/user/post/:id", auth, async (req, res) => {
+  try {
+    const values = {
+      _id: req.params.id,
+      owner: req.user._id,
+    };
+
+    const postController = new PostController();
+    const post = await postController.getPostById(values);
+    res.send(post);
+  } catch (err) {
+    res.send(err.message);
+  }
+});
+
+router.patch("/user/post/:id", auth, async (req, res) => {
+  try {
+    const values = {
+      _id: req.params.id,
+      owner: req.user._id,
+    };
     const updates = req.body;
-    const ownerId = req.user._id;
+    const postController = new PostController();
+    const post = await postController.updatePost(values, updates);
+    res.send(post);
+  } catch (err) {
+    res.send(err.message);
+  }
+});
 
-    try {
-      const post = await Post.findOneAndUpdate(
-        { _id: postId, owner: ownerId },
-        updates,
-        { new: true }
-      );
-  
-      if (!post) {
-        return res.send("post to be updated not found");
-      }
-      res.send(post);
-    } catch (err) {
-      res.send(err);
-    }
-  });
-  
-  router.delete("/user/post/:id", auth, async (req, res) => {
-    const postId = req.params.id;
-    const ownerId = req.user._id;
-    try{
-      const post = await Post.findOneAndDelete({ _id: postId, owner: ownerId });
-      if(!post){
-        return res.send("post to be deleted not found");
-      }
-  
-      res.send(post);
-    }catch(err){
-      res.send(err);
-    }
-  });
+router.delete("/user/post/:id", auth, async (req, res) => {
+  try {
+    const values = { _id: req.params.id, owner: req.user._id };
+    const postController = new PostController();
+    const post = postController.deletePost(values);
+    res.send(post);
+  } catch (err) {
+    res.send(err.message);
+  }
+});
 
-  module.exports = router;
+module.exports = router;
