@@ -11,6 +11,7 @@ const auth = async (req, res, next) => {
     if (!user) {
       console.log("user not logged in or session expired");
     }
+
     req.user = user;
 
     next();

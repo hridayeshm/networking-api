@@ -51,7 +51,7 @@ class PostController {
 
   async deletePost(values) {
     try {
-      const post = await Post.findOneAndUpdate();
+      const post = await Post.findOneAndDelete(values);
       if (!post) {
         throw new Error("post to be deleted not found");
       }

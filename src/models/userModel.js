@@ -34,12 +34,19 @@ const userSchema = new mongoose.Schema(
         }
       },
     },
-    // tokens: [{
-    //     token: {
-    //         type: String,
-    //         required: true
-    //     }
-    // }],
+    followers: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User'
+    }],
+    followees: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User'
+    }],
+    status: {
+      type: String,
+      enum: ['active', 'inactive'],
+      default: "inactive"
+    }
   },
   {
     timestamps: true,
@@ -51,7 +58,7 @@ userSchema.methods.toJSON = function () {
   const userObject = user.toObject();
 
   delete userObject.password;
-  delete userObject.tokens;
+
 
   return userObject;
 };
