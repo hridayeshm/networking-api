@@ -3,6 +3,7 @@ const validator = require("validator");
 const jwt = require("jsonwebtoken");
 require("dotenv").config();
 const bcrypt = require("bcrypt");
+const { UUID } = require("mongodb");
 
 const userSchema = new mongoose.Schema(
   {
@@ -42,6 +43,9 @@ const userSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User'
     }],
+    emailVerificationToken: {
+      type: String
+    },
     status: {
       type: String,
       enum: ['active', 'inactive'],

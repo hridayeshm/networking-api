@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const Post = require("../models/postModel");
 const auth = require("../middlewares/auth");
-const PostController = require("../controllers/postController");
+const PostController = require("../controllers/user controller/postController");
 
 router.post("/user/post", auth, async (req, res) => {
   try {

@@ -1,9 +1,9 @@
-const User = require("../models/userModel");
+const User = require("../../models/userModel");
 const bcrypt = require("bcrypt");
-const Notification = require("../models/notificationModel");
-const Follow = require("../models/followModel");
+const Notification = require("../../models/notificationModel");
+const Follow = require("../../models/followModel");
 const express = require("express");
-const Post = require("../models/postModel");
+const Post = require("../../models/postModel");
 const nodemailer = require("nodemailer");
 
 class UserController {
@@ -28,8 +28,8 @@ class UserController {
       if (!(await bcrypt.compare(values.password, user.password))) {
         throw new Error("login with correct email and password");
       }
-      
-      user.status = "active";
+//if check for user status
+      user.status = "active"; // check laterrrrrrrrrrrrrr
       await user.save();
 
       return user;
@@ -163,6 +163,7 @@ class UserController {
       console.log(user);
 
       const posts = await Post.find({owner: {$in: user.followees}});
+      // for populating comments also when getting posts, use virtual field
       return posts;
     } catch (err) {
       throw err;
