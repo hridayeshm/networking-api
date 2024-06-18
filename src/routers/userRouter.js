@@ -1,21 +1,38 @@
-
+const express = require("express");
+const router = express.Router();
 const User = require("../models/userModel");
-const UserController = require("../controllers/user controller/userController");
+const UserController = require("../controllers/userController");
 const auth = require("../middlewares/auth");
-
+const { v4: uuidv4 } = require("uuid");
 
 router.post("/users/register", async (req, res) => {
   try {
-    const values = req.body;
-    const userController = new UserController();
-    //const emailVerificationToken = uuidv4()
-    //values.emailVerificationToken = emailVerificationToken;
-    const user = await userController.registerUser(values);
-    //await userController.sendMail(values, emailVerificationToken);
+    const values = {
+      username: req.body.username,
+      email: req.body.email,
+      password: req.body.password,
+      emailVerificationToken: uuidv4(),
+    };
 
-    res.status(201).send(user);
+    const userController = new UserController();
+
+    const user = await userController.registerUser(values);
+    const verificationMessage = await userController.sendMail(values);
+
+    res.status(201).send(verificationMessage);
   } catch (err) {
     console.log(err);
+  }
+});
+
+router.post("/user/verify/:verificationToken", async (req, res) => {
+  try {
+    const emailVerificationToken = req.params.verificationToken;
+    const userController = new UserController();
+    const user = await userController.verify(emailVerificationToken);
+    res.send(user);
+  } catch (err) {
+    res.send(err);
   }
 });
 
@@ -26,111 +43,58 @@ router.post("/users/login", async (req, res) => {
 
     const user = await userController.loginUser(values);
 
-    const token = await user.generateAuthToken();
+    const { token, uuid } = await user.generateAuthToken();
+    //save in toke schema TokenSchema.create({})
 
-   // await userController.sendMail(values, token);
-
-    
     res.send({ user, token });
   } catch (err) {
     res.send(err.message);
   }
 });
 
-router.post("/user/follow/:id", auth, async (req, res) => {
+router.patch("/user/change-password", auth, async (req, res) => {
   try {
     const values = {
-      follower: req.user._id,
-      followee: req.params.id,
-      from: req.user._id,
-      to: req.params.id,
-      status: "requested",
+      userID: req.user._id,
+      oldPassword: req.body.oldPassword,
+      newPassword: req.body.newPassword,
     };
-    const userController = new UserController();
-    const notification = await userController.sendFollowRequest(values);
-    res.send(notification);
-  } catch (err) {
-    res.send(err);
-  }
-});
-
-router.get("/user/list-all-notifications", auth, async (req, res) => {
-  try {
-    const values = { to: req.user._id };
-    const userController = new UserController();
-    const notifications = await userController.listAllNotifications(values);
-    res.send(notifications);
-  } catch (err) {
-    res.send(err);
-  }
-});
-
-router.patch("/user/respond-to-request/:id/:action", auth, async (req, res) => {
-  try{
-    const action = req.params.action;
-    const values = { from: req.params.id, to: req.user._id };
-
-    const userController = new UserController();
-    const response = await userController.respond(values, action);
-    res.send(response);
-  }catch(err){
-    res.send(err);
-  }
-});
-
-router.get("/user/list-all-followers", auth, async(req, res) => {
-  try{
-    const values = {_id : req.user._id};
-    const userController = new UserController();
-    const followers = await userController.listFollowers(values);
-    res.send(followers);
-  }catch(err){
-    res.send(err.message);
-  }
-});
-
-router.get("/user/list-all-followees", auth, async(req,res) => {
-  try{
-    const values = {_id : req.user._id};
-    const userController = new UserController();
-    const followees = await userController.listFollowees(values);
-    res.send(followees);
-  }catch(err){
-    res.send(err.message);
-  }
-});
-
-router.patch("/user/change-password", auth, async(req,res) => {
-  try{
-    const values = {userID : req.user._id, oldPassword: req.body.oldPassword, newPassword: req.body.newPassword};
     const userController = new UserController();
     const newPassword = await userController.changePassword(values);
     res.send(newPassword);
-  }catch(err){
+  } catch (err) {
     res.send(err.message);
   }
 });
 
-router.get("/user/feed", auth, async(req,res) => {
-  try{
-    const values = { _id: req.user._id};
+router.get("/user/feed", auth, async (req, res) => {
+  try {
+    const values = { _id: req.user._id };
     const userController = new UserController();
     const feed = await userController.showFeed(values);
     res.send(feed);
-  }catch(err){
+  } catch (err) {
     res.send(err.message);
   }
 });
 
-// router.get("/users/:id", async (req, res) => {
-//   console.log(req.params.id);
-//   try {
-//     const user = await User.findById(req.params.id);
-//     console.log(user);
-//     res.send(user);
-//   } catch (e) {
-//     res.status(404).send();
-//   }
-// });
+router.post("/user/create-event", auth, async (req, res) => {
+  try {
+    const values = {
+      title: req.body.title,
+      description: req.body.description,
+      startDate: startDate,
+      endDate: endDate,
+      location: req.body.location,
+      status: "active",
+      organizer: req.user._id
+    };
+    const userController = new UserController();
+    const event = await userController.createEvent(values);
+    res.send(event);
+  } catch (err) {
+    res.send(err);
+  }
+});
 
 module.exports = router;

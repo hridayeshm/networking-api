@@ -1,10 +1,9 @@
-const User = require("../../models/userModel");
+const User = require("../models/userModel");
 const bcrypt = require("bcrypt");
-const Notification = require("../../models/notificationModel");
-const Follow = require("../../models/followModel");
-const express = require("express");
-const Post = require("../../models/postModel");
-const nodemailer = require("nodemailer");
+const Notification = require("../models/notificationModel");
+const Follow = require("../models/followModel");
+const Post = require("../models/postModel");
+const sendVerficationMail = require("../service/mail");
 
 class UserController {
   async registerUser(values) {
@@ -28,9 +27,9 @@ class UserController {
       if (!(await bcrypt.compare(values.password, user.password))) {
         throw new Error("login with correct email and password");
       }
-//if check for user status
-      user.status = "active"; // check laterrrrrrrrrrrrrr
-      await user.save();
+      if(user.status !== "active"){
+        throw new Error("user has not been activated yet. please check mail for verificaiton");
+      }
 
       return user;
     } catch (err) {
@@ -170,24 +169,28 @@ class UserController {
     }
   }
 
-  async sendMail(values, token){
+  async sendMail(values){
+    sendVerficationMail(values);
+  }
+
+  async verify(emailVerificationToken){
+   try{
+    const user = await User.findOneAndUpdate({emailVerificationToken},{mailVerifiedAt: new Date(), emailVerificationToken: null, status: "active"}, {new: true});
+    if(!user){
+      throw new Error("invalid token");
+    }
+
+    return user;
+   }catch(err){
+    throw err;
+   }
+  }
+
+  async createEvent(values){
     try{
-      const transporter = nodemailer.createTransport({
-        host: "sandbox.smtp.mailtrap.io",
-        port: 2525,
-        auth: {
-          user: 'c604d13959141c',
-          pass: 'fefff4c7cb19f4' 
-        }
-      });
-  
-      const mailOptions = {
-        from: 'hridayesh@gmail.com',
-        to: values.email, 
-        subject: 'Login Token',
-        text: `Your login token: ${token}`
-      };
-      await transporter.sendMail(mailOptions);
+      const event = new Event(values);
+      await event.save();
+      return event;
     }catch(err){
       throw err;
     }

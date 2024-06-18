@@ -3,7 +3,8 @@ const validator = require("validator");
 const jwt = require("jsonwebtoken");
 require("dotenv").config();
 const bcrypt = require("bcrypt");
-const { UUID } = require("mongodb");
+const { v4: uuidv4 } = require('uuid');
+
 
 const userSchema = new mongoose.Schema(
   {
@@ -46,6 +47,10 @@ const userSchema = new mongoose.Schema(
     emailVerificationToken: {
       type: String
     },
+    mailVerifiedAt: {
+      type: Date,
+      default: null
+    },
     status: {
       type: String,
       enum: ['active', 'inactive'],
@@ -69,11 +74,12 @@ userSchema.methods.toJSON = function () {
 
 userSchema.methods.generateAuthToken = async function () {
   const user = this;
-
+  const uuid = uuidv4();
   const jwt_payload = {
     _id: user._id.toString(),
     email: user.email,
     username: user.username,
+    uuid: uuid
   };
   const token = jwt.sign(jwt_payload, process.env.SECRET_KEY);
   await user.save();
@@ -82,7 +88,7 @@ userSchema.methods.generateAuthToken = async function () {
   //     console.log("saved");      //CHECK LATER
   // })
 
-  return token;
+  return {token, uuid};
 };
 
 // userSchema.statics.findUserByCredentials = async function(email, password) {
