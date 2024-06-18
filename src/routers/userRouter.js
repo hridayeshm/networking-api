@@ -97,4 +97,17 @@ router.post("/user/create-event", auth, async (req, res) => {
   }
 });
 
+router.post("/user/add-participant/:id", auth, async(req, res) => {
+  try{
+    const participantID = req.params.id;
+    const values = {
+      organizer : req.user._id,
+    };
+    const userController = new UserController();
+    const event = await userController.addParticipant(values, participantID);
+  }catch(err){
+    res.send(err);
+  }
+});
+
 module.exports = router;

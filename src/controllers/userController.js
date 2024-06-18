@@ -195,6 +195,18 @@ class UserController {
       throw err;
     }
   }
+
+  async addParticipant(values, participantID){
+    try{
+      const event = await Event.findOneAndUpdate(values, { $push: { participants: participantID} }, {new: true});
+      if(!event) {
+        throw new Error("event not found");
+      }
+      return event;
+    }catch(err){
+      throw err;
+    }
+  }
 }
 
 module.exports = UserController;
