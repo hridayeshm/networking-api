@@ -10,6 +10,24 @@ class PostController {
       throw err;
     }
   }
+  
+  //const createPostNewx = async (request, response, next) => {}
+  async createPostNew(request, response, next) {
+    try {
+      const {_id} = request.user;
+      const {title, description} = request.body;
+      const newPost = {
+        title,
+        description,
+        owner: _id
+      }
+      const post = new Post(newPost);
+      const createdPost = await post.save();
+      return response.status(200).send(createdPost);
+    } catch (err) {
+      throw err;
+    }
+  }
 
   async getAllPosts(values) {
     try {

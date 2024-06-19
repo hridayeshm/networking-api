@@ -3,6 +3,7 @@ const router = express.Router();
 const Post = require("../models/postModel");
 const auth = require("../middlewares/auth");
 const PostController = require("../controllers/postController");
+const _postController = new PostController();
 
 router.post("/user/post", auth, async (req, res) => {
   try {
@@ -70,5 +71,8 @@ router.delete("/user/post/:id", auth, async (req, res) => {
     res.send(err.message);
   }
 });
+
+router.post("/user/post1", auth, _postController.createPostNew);
+
 
 module.exports = router;

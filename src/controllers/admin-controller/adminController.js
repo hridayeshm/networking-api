@@ -34,9 +34,9 @@ class AdminController {
 
   async listAllPosts(){
     try{
-      const allPosts = await Post.find();
+      const allPosts = await Post.find().populate("owner","username").exec();
       if(!allPosts){
-        throw new Error("no post found");
+        throw new Error("no posts found");
       }
       return allPosts;
     }catch(err){

@@ -3,7 +3,8 @@ const bcrypt = require("bcrypt");
 const Notification = require("../models/notificationModel");
 const Follow = require("../models/followModel");
 const Post = require("../models/postModel");
-const sendVerficationMail = require("../service/mail");
+const sendVerficationMail = require("../service/verificationMail");
+const Event = require("../models/eventModel");
 
 class UserController {
   async registerUser(values) {
@@ -189,6 +190,9 @@ class UserController {
   async createEvent(values){
     try{
       const event = new Event(values);
+      if (!event){
+        throw new Error("failed to create event");
+      }
       await event.save();
       return event;
     }catch(err){
@@ -196,10 +200,31 @@ class UserController {
     }
   }
 
+  async listEvents(){
+    try{
+      const events = Event.find();
+      return events;
+    } catch(err){
+      throw err;
+    } 
+  }
+
   async addParticipant(values, participantID){
     try{
       const event = await Event.findOneAndUpdate(values, { $push: { participants: participantID} }, {new: true});
       if(!event) {
+        throw new Error("event not found");
+      }
+      return event;
+    }catch(err){
+      throw err;
+    }
+  }
+
+  async participate(values, req){
+    try{
+      const event = await Event.findOneAndUpdate(values, { $push: { participants: req.user._id}}, {new: true});
+      if(!event){
         throw new Error("event not found");
       }
       return event;

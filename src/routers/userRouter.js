@@ -17,9 +17,9 @@ router.post("/users/register", async (req, res) => {
     const userController = new UserController();
 
     const user = await userController.registerUser(values);
-    const verificationMessage = await userController.sendMail(values);
+    await userController.sendMail(values);
 
-    res.status(201).send(verificationMessage);
+    res.status(201).send("user registered . check email for verification");
   } catch (err) {
     console.log(err);
   }
@@ -83,8 +83,8 @@ router.post("/user/create-event", auth, async (req, res) => {
     const values = {
       title: req.body.title,
       description: req.body.description,
-      startDate: startDate,
-      endDate: endDate,
+      startDate: req.body.startDate,
+      endDate: req.body.endDate,
       location: req.body.location,
       status: "active",
       organizer: req.user._id
@@ -93,11 +93,21 @@ router.post("/user/create-event", auth, async (req, res) => {
     const event = await userController.createEvent(values);
     res.send(event);
   } catch (err) {
-    res.send(err);
+    res.send(err.message);
   }
 });
 
-router.post("/user/add-participant/:id", auth, async(req, res) => {
+router.get("/user/get-all-events", auth, async(req,res) => {
+  try{
+    const userController = new UserController();
+    const events = await userController.listEvents();
+    res.send(events);
+  }catch(err){
+    res.send(err.message);
+  }
+});
+
+router.patch("/user/add-participant/:id", auth, async(req, res) => {
   try{
     const participantID = req.params.id;
     const values = {
@@ -105,8 +115,23 @@ router.post("/user/add-participant/:id", auth, async(req, res) => {
     };
     const userController = new UserController();
     const event = await userController.addParticipant(values, participantID);
+    res.send(event);
   }catch(err){
-    res.send(err);
+    res.send(err.message);
+  }
+});
+
+router.post("/user/participate/:eventID", auth, async(req,res) => {
+  try{
+    const values = {
+      _id: req.params.eventID
+    };
+
+    const userController = new UserController();
+    const event = await userController.participate(values,req);
+    res.send(event);
+  }catch(err){
+    res.send(err.message);
   }
 });
 
