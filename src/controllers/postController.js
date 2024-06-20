@@ -56,7 +56,10 @@ class PostController {
 
   async updatePost(values, updates) {
     try {
-      const post = await Post.findOneAndUpdate(values, updates, { new: true });
+      const where = {
+
+      };
+      const post = await Post.findOneAndUpdate(where, {$set: updates}, { new: true });
 
       if (!post) {
         throw new Error("post to be updated not found");

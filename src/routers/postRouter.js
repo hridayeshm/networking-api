@@ -53,6 +53,8 @@ router.patch("/user/post/:id", auth, async (req, res) => {
       owner: req.user._id,
     };
     const updates = req.body;
+    //const payload = {...updates};
+    
     const postController = new PostController();
     const post = await postController.updatePost(values, updates);
     res.send(post);

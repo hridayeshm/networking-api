@@ -6,6 +6,7 @@ const commentRouter = require('./routers/commentRouter');
 const likeRouter = require('./routers/likeRouter');
 const adminRouter = require('./routers/adminRouter');
 const followRouter = require('./routers/followRouter');
+const eventRouter = require('./routers/eventRouter');
 const nodemailer = require("nodemailer");
 require('./db/mongoose')
 require('./middlewares/auth')
@@ -21,6 +22,7 @@ app.use(commentRouter);
 app.use(likeRouter);
 app.use(adminRouter);
 app.use(followRouter);
+app.use(eventRouter);
 
 app.listen(PORT, () => {
     console.log(`Server is up and running at port ${PORT}`);

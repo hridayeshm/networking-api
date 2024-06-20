@@ -2,22 +2,23 @@ const express = require("express");
 const router = express.Router();
 const Admin = require("../models/adminModel");
 const AdminController = require("../controllers/admin-controller/adminController");
-
+const adminAuth = require("../middlewares/adminAuth");
 
 router.post("/admin/login", async (req, res) => {
   try {
     const values = req.body;
     const adminController = new AdminController();
     const admin = await adminController.login(values);
-   
-    
-    res.send(admin);
+    const token = await admin.generateAuthToken();
+
+
+    res.send(token);
   } catch (err) {
     res.send(err.message);
   }
 });
 
-router.get("/admin/get-all-users", async (req, res) => {
+router.get("/admin/get-all-users", adminAuth, async (req, res) => {
   try {
 
     const adminController = new AdminController();
@@ -28,7 +29,7 @@ router.get("/admin/get-all-users", async (req, res) => {
   }
 });
 
-router.get("/admin/get-all-posts", async(req,res) => {
+router.get("/admin/get-all-posts", adminAuth, async(req,res) => {
   try{
 
     const adminController = new AdminController();
@@ -39,7 +40,7 @@ router.get("/admin/get-all-posts", async(req,res) => {
   }
 });
 
-router.post("/admin/logout", async(req,res) => {
+router.post("/admin/logout", adminAuth, async(req,res) => {
   try{
 
     const adminController = new AdminController();

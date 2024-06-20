@@ -1,9 +1,9 @@
 const express = require("express");
 const router = express.Router();
-const User = require("../models/userModel");
+const Token = require("../models/tokenModel");
 const UserController = require("../controllers/userController");
 const auth = require("../middlewares/auth");
-const { v4: uuidv4 } = require("uuid");
+
 
 router.post("/users/register", async (req, res) => {
   try {
@@ -33,7 +33,7 @@ router.post("/user/verify/:verificationToken", async (req, res) => {
     res.send(user);
   } catch (err) {
     res.send(err);
-  }
+  }               
 });
 
 router.post("/users/login", async (req, res) => {
@@ -43,10 +43,13 @@ router.post("/users/login", async (req, res) => {
 
     const user = await userController.loginUser(values);
 
-    const { token, uuid } = await user.generateAuthToken();
-    //save in toke schema TokenSchema.create({})
+    const [token, username] = await user.generateAuthToken();
+    console.log(username)
+    
+    const tokenDoc = new Token({username});
+    await tokenDoc.save();
 
-    res.send({ user, token });
+    res.send(token);
   } catch (err) {
     res.send(err.message);
   }
@@ -78,58 +81,9 @@ router.get("/user/feed", auth, async (req, res) => {
   }
 });
 
-router.post("/user/create-event", auth, async (req, res) => {
-  try {
-    const values = {
-      title: req.body.title,
-      description: req.body.description,
-      startDate: req.body.startDate,
-      endDate: req.body.endDate,
-      location: req.body.location,
-      status: "active",
-      organizer: req.user._id
-    };
-    const userController = new UserController();
-    const event = await userController.createEvent(values);
-    res.send(event);
-  } catch (err) {
-    res.send(err.message);
-  }
-});
-
-router.get("/user/get-all-events", auth, async(req,res) => {
+router.post("/user/logout", auth, async(req, res) => {
   try{
-    const userController = new UserController();
-    const events = await userController.listEvents();
-    res.send(events);
-  }catch(err){
-    res.send(err.message);
-  }
-});
 
-router.patch("/user/add-participant/:id", auth, async(req, res) => {
-  try{
-    const participantID = req.params.id;
-    const values = {
-      organizer : req.user._id,
-    };
-    const userController = new UserController();
-    const event = await userController.addParticipant(values, participantID);
-    res.send(event);
-  }catch(err){
-    res.send(err.message);
-  }
-});
-
-router.post("/user/participate/:eventID", auth, async(req,res) => {
-  try{
-    const values = {
-      _id: req.params.eventID
-    };
-
-    const userController = new UserController();
-    const event = await userController.participate(values,req);
-    res.send(event);
   }catch(err){
     res.send(err.message);
   }

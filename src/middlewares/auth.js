@@ -7,6 +7,7 @@ const auth = async (req, res, next) => {
     //console.log("Request Headers:", req.headers);
     const token = req.header("Authorization").replace("Bearer ", "");
     const decoded = jwt.verify(token, process.env.SECRET_KEY);
+    
     const user = await User.findOne({ _id: decoded._id });
     if (!user) {
       console.log("user not logged in or session expired");

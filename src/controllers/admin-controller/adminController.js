@@ -6,14 +6,12 @@ class AdminController {
   async login(values) {
     try {
       
-      const admin = await Admin.findOneAndUpdate(values, {isActive: true}, {new: true});
+      const admin = await Admin.findOne(values);
     
       if(!admin){
         throw new Error("no admin found");
       }
-      
-      
-      
+          
       return admin;
     } catch (err) {
       throw err;

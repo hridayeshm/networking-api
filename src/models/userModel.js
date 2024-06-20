@@ -74,21 +74,22 @@ userSchema.methods.toJSON = function () {
 
 userSchema.methods.generateAuthToken = async function () {
   const user = this;
-  const uuid = uuidv4();
+
   const jwt_payload = {
     _id: user._id.toString(),
     email: user.email,
     username: user.username,
-    uuid: uuid
   };
   const token = jwt.sign(jwt_payload, process.env.SECRET_KEY);
-  await user.save();
+ 
   // user.tokens = user.tokens.concat({ token });
   // await user.save().then(() => {
   //     console.log("saved");      //CHECK LATER
   // })
 
-  return {token, uuid};
+ 
+  console.log(jwt_payload.username);
+  return [token,jwt_payload.username];
 };
 
 // userSchema.statics.findUserByCredentials = async function(email, password) {
