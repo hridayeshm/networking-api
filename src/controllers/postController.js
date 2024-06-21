@@ -57,7 +57,7 @@ class PostController {
   async updatePost(values, updates) {
     try {
       const where = {
-
+//suggested by dai, CHECK LATER //update post doesnt work as of now
       };
       const post = await Post.findOneAndUpdate(where, {$set: updates}, { new: true });
 

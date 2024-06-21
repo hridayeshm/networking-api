@@ -60,4 +60,14 @@ router.delete("/comment/delete/:id", auth, async (req, res) => {
   }
 });
 
+router.delete("/postOwner/comment/delete/:id", auth, async(req, res) => {
+  try{
+    const commentID = req.params.id;
+    const commentController = new CommentController();
+    await commentController.deleteCommentByPostOwner(commentID); //continueeeeeeeeeeeeeeeeeeeeeee
+  }catch(err){
+    res.send(err.message);
+  }
+});
+
 module.exports = router;

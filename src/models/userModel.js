@@ -3,8 +3,7 @@ const validator = require("validator");
 const jwt = require("jsonwebtoken");
 require("dotenv").config();
 const bcrypt = require("bcrypt");
-const { v4: uuidv4 } = require('uuid');
-
+const { v4: uuidv4 } = require("uuid");
 
 const userSchema = new mongoose.Schema(
   {
@@ -36,26 +35,30 @@ const userSchema = new mongoose.Schema(
         }
       },
     },
-    followers: [{
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User'
-    }],
-    followees: [{
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User'
-    }],
+    followers: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
+    followees: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
     emailVerificationToken: {
-      type: String
+      type: String,
     },
     mailVerifiedAt: {
       type: Date,
-      default: null
+      default: null,
     },
     status: {
       type: String,
-      enum: ['active', 'inactive'],
-      default: "inactive"
-    }
+      enum: ["active", "inactive", "blocked"],
+      default: "inactive",
+    },
   },
   {
     timestamps: true,
@@ -68,28 +71,28 @@ userSchema.methods.toJSON = function () {
 
   delete userObject.password;
 
-
   return userObject;
 };
 
 userSchema.methods.generateAuthToken = async function () {
   const user = this;
-
+  const uuid = uuidv4();
+  
   const jwt_payload = {
     _id: user._id.toString(),
     email: user.email,
     username: user.username,
+    uuid: uuid,
   };
   const token = jwt.sign(jwt_payload, process.env.SECRET_KEY);
- 
+  // token.insert({userId:user._id,uuid:uuid})
   // user.tokens = user.tokens.concat({ token });
   // await user.save().then(() => {
   //     console.log("saved");      //CHECK LATER
   // })
 
- 
-  console.log(jwt_payload.username);
-  return [token,jwt_payload.username];
+  console.log(jwt_payload.username, jwt_payload.uuid);
+  return [token, jwt_payload.email, jwt_payload.uuid];
 };
 
 // userSchema.statics.findUserByCredentials = async function(email, password) {

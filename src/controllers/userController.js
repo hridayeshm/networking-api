@@ -5,6 +5,7 @@ const Follow = require("../models/followModel");
 const Post = require("../models/postModel");
 const sendVerficationMail = require("../service/verificationMail");
 const Event = require("../models/eventModel");
+const Token = require("../models/tokenModel");
 
 class UserController {
   async registerUser(values) {
@@ -28,8 +29,11 @@ class UserController {
       if (!(await bcrypt.compare(values.password, user.password))) {
         throw new Error("login with correct email and password");
       }
-      if(user.status !== "active"){
+      if(user.status === "inactive"){
         throw new Error("user has not been activated yet. please check mail for verificaiton");
+      }
+      if(user.status === "blocked"){
+        throw new Error("please contact administrator");
       }
 
       return user;
@@ -140,7 +144,7 @@ class UserController {
     }
   }
 
-  async changePassword(values) {
+  async changePasssword(values) {
     try {
       const user = await User.findOne({ _id: values.userID });
 
@@ -228,6 +232,17 @@ class UserController {
         throw new Error("event not found");
       }
       return event;
+    }catch(err){
+      throw err;
+    }
+  }
+
+  async logoutUser(userID, tokenUUID){
+    try{
+      
+      const user = await User.findOneAndUpdate({_id: userID}, {status: "inactive"}, {new: true}); 
+      await Token.deleteOne({uuid: tokenUUID}); 
+      return user;
     }catch(err){
       throw err;
     }
