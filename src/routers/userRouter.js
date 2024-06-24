@@ -44,14 +44,13 @@ router.post("/user/login", async (req, res) => {
     const user = await userController.loginUser(values);
 
     const [token, email, uuid] = await user.generateAuthToken();
-
     
-    const tokenDoc = new Token({email, uuid});
+    const tokenDoc = new Token({email, uuid, user: user._id});
     await tokenDoc.save();
 
     res.send([token, tokenDoc]);
   } catch (err) {
-    res.send(err.message);
+    console.log(err);
   }
 });
 

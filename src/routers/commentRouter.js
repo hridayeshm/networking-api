@@ -60,11 +60,15 @@ router.delete("/comment/delete/:id", auth, async (req, res) => {
   }
 });
 
-router.delete("/postOwner/comment/delete/:id", auth, async(req, res) => {
+router.delete("/:postID/comment/delete/:id", auth, async(req, res) => {
   try{
+    const postID = req.params.postID;
     const commentID = req.params.id;
+    const ownerID = req.user._id;
+   
     const commentController = new CommentController();
-    await commentController.deleteCommentByPostOwner(commentID); //continueeeeeeeeeeeeeeeeeeeeeee
+    const deletedComment = await commentController.deleteCommentByPostOwner(postID, commentID, ownerID);
+    res.send(deletedComment); 
   }catch(err){
     res.send(err.message);
   }

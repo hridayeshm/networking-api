@@ -68,6 +68,7 @@ router.delete("/user/post/:id", auth, async (req, res) => {
     const values = { _id: req.params.id, owner: req.user._id };
     const postController = new PostController();
     const post = postController.deletePost(values);
+    
     res.send(post);
   } catch (err) {
     res.send(err.message);

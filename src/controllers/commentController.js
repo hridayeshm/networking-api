@@ -1,4 +1,5 @@
 const Comment = require("../models/commentModel");
+const Post = require("../models/postModel");
 
 class CommentController {
   async addComment(values) {
@@ -47,6 +48,27 @@ class CommentController {
       return deletedComment;
     } catch (err) {
       throw err;
+    }
+  }
+
+  async deleteCommentByPostOwner(postID, commentID, ownerID){
+    try{
+     const post = await Post.findOne({_id: postID, owner: ownerID});
+
+     if(!post){
+      throw new Error("post not found or you are authorized to delete this comment");
+     }
+
+     const comment = await Comment.findOneAndDelete({_id: commentID});
+
+     if(!comment){
+      throw new Error("comment not found or could not be deleted");
+     }
+
+     return comment
+
+    }catch(err){
+     throw err;
     }
   }
 }

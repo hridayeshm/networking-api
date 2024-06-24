@@ -38,7 +38,7 @@ class UserController {
 
       return user;
     } catch (err) {
-      throw err;
+     console.log(err);
     }
   }
 

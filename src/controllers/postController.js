@@ -1,6 +1,14 @@
 const Post = require("../models/postModel");
+const Comment = require("../models/commentModel");
+const Like = require("../models/likeModel");
+const EventEmitter = require('events');
+const postEmitter = new EventEmitter();
 
 class PostController {
+  constructor(){
+    postEmitter.on('postDeleted', this.postDeletionHandler.bind(this));
+  }
+  
   async createPost(values) {
     try {
       const post = new Post(values);
@@ -76,9 +84,27 @@ class PostController {
       if (!post) {
         throw new Error("post to be deleted not found");
       }
+      postEmitter.emit('postDeleted', post._id);
+     
       return post;
     } catch (err) {
       throw err;
+    }
+  }
+
+  async postDeletionHandler(postId) {
+    try {
+     
+      const deletedComments = await Comment.deleteMany({ post: postId });
+
+      const deletedLikes = await Like.deleteMany({ post: postId });
+
+      if(deletedComments && deletedLikes){
+        console.log("likes and comments associated to the post also removed");
+      }
+    
+    } catch (err) {
+      throw new Error("comments and likes associated with the post could not be removed");
     }
   }
 }
