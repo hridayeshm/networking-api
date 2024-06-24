@@ -4,6 +4,7 @@ const Like = require("../models/likeModel");
 const EventEmitter = require('events');
 const postEmitter = new EventEmitter();
 
+
 class PostController {
   constructor(){
     postEmitter.on('postDeleted', this.postDeletionHandler.bind(this));
@@ -37,13 +38,13 @@ class PostController {
     }
   }
 
-  async getAllPosts(values) {
+  async getAllPosts(values, options) {
     try {
-      const post = await Post.find(values);
-      if (!post || post.length === 0) {
+      const posts = await Post.paginate(values, options);
+      if (!posts || posts.length === 0) {
         throw new Error("no posts found for this user");
       }
-      return post;
+      return posts;
     } catch (err) {
       throw err;
     }

@@ -23,9 +23,13 @@ router.post("/user/post", auth, async (req, res) => {
 router.get("/user/post/all", auth, async (req, res) => {
   try {
     const values = { owner: req.user._id };
+    const options = {
+      page: parseInt(req.query.page),
+      limit: parseInt(req.query.limit)
+    };
     const postController = new PostController();
-    const post = await postController.getAllPosts(values);
-    res.send(post);
+    const posts = await postController.getAllPosts(values, options);
+    res.send(posts);
   } catch (err) {
     res.send(err.message);
   }
