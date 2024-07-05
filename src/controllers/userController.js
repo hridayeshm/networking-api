@@ -1,4 +1,3 @@
-const User = require("../models/userModel");
 const bcrypt = require("bcrypt");
 const Notification = require("../models/notificationModel");
 const Follow = require("../models/followModel");
@@ -6,40 +5,65 @@ const Post = require("../models/postModel");
 const sendVerficationMail = require("../service/verificationMail");
 const Event = require("../models/eventModel");
 const Token = require("../models/tokenModel");
+const UserRepository = require("../repositories/userRepository");
+const userRepository = new UserRepository();
+const TokenRepository = require("../repositories/tokenRepository");
+const tokenRepository = new TokenRepository();
+const { v4: uuidv4 } = require("uuid");
 
 class UserController {
-  async registerUser(values) {
+  async registerUser(req, res, next) {
     try {
-      const user = new User(values);
+      const values = {
+        username: req.body.username,
+        email: req.body.email,
+        password: req.body.password,
+        emailVerificationToken: uuidv4(),
+      };
 
-      await user.save();
-      return user;
+      const user = await userRepository.register(values);
+
+      sendVerficationMail(values);
+
+      res.status(201).send("user registered . check email for verification");
     } catch (err) {
-      throw err;
+      console.log(err);
     }
   }
 
-  async loginUser(values) {
-    try {
-      const user = await User.findOne({ email: values.email });
+  async loginUser(req, res, next) {
 
+    try {
+      const filter = req.body;
+  
+  
+      const user = await userRepository.login(filter);
+      
       if (!user) {
         throw new Error("user not found");
       }
-      if (!(await bcrypt.compare(values.password, user.password))) {
+      if (!(await bcrypt.compare(filter.password, user.password))) {
         throw new Error("login with correct email and password");
       }
-      if(user.status === "inactive"){
-        throw new Error("user has not been activated yet. please check mail for verificaiton");
+      if (user.status === "inactive") {
+        throw new Error(
+          "user has not been activated yet. please check mail for verificaiton"
+        );
       }
-      if(user.status === "blocked"){
+      if (user.status === "blocked") {
         throw new Error("please contact administrator");
       }
-
-      return user;
+  
+      const [token, email, uuid] = await user.generateAuthToken();
+      const tokenDoc = await tokenRepository.createToken(email, uuid);
+    
+      
+  
+      res.send([token, tokenDoc]);
     } catch (err) {
-     console.log(err);
+      console.log(err);
     }
+    
   }
 
   async sendFollowRequest(values) {
@@ -163,10 +187,10 @@ class UserController {
 
   async showFeed(values) {
     try {
-      const user = await User.findOne(values).populate('followees', '_id');
+      const user = await User.findOne(values).populate("followees", "_id");
       console.log(user);
 
-      const posts = await Post.find({owner: {$in: user.followees}});
+      const posts = await Post.find({ owner: { $in: user.followees } });
       // for populating comments also when getting posts, use virtual field
       return posts;
     } catch (err) {
@@ -174,76 +198,82 @@ class UserController {
     }
   }
 
-  async sendMail(values){
-    sendVerficationMail(values);
+  async verifyUser(req, res, next) {
+    try {
+      const emailVerificationToken = req.params.verificationToken;
+     
+      const user = await userRepository.verify(emailVerificationToken);
+      res.send(user);
+    } catch (err) {
+      res.send(err);
+    }  
+ 
   }
 
-  async verify(emailVerificationToken){
-   try{
-    const user = await User.findOneAndUpdate({emailVerificationToken},{mailVerifiedAt: new Date(), emailVerificationToken: null, status: "active"}, {new: true});
-    if(!user){
-      throw new Error("invalid token");
-    }
-
-    return user;
-   }catch(err){
-    throw err;
-   }
-  }
-
-  async createEvent(values){
-    try{
+  async createEvent(values) {
+    try {
       const event = new Event(values);
-      if (!event){
+      if (!event) {
         throw new Error("failed to create event");
       }
       await event.save();
       return event;
-    }catch(err){
+    } catch (err) {
       throw err;
     }
   }
 
-  async listEvents(){
-    try{
+  async listEvents() {
+    try {
       const events = Event.find();
       return events;
-    } catch(err){
-      throw err;
-    } 
-  }
-
-  async addParticipant(values, participantID){
-    try{
-      const event = await Event.findOneAndUpdate(values, { $push: { participants: participantID} }, {new: true});
-      if(!event) {
-        throw new Error("event not found");
-      }
-      return event;
-    }catch(err){
+    } catch (err) {
       throw err;
     }
   }
 
-  async participate(values, req){
-    try{
-      const event = await Event.findOneAndUpdate(values, { $push: { participants: req.user._id}}, {new: true});
-      if(!event){
+  async addParticipant(values, participantID) {
+    try {
+      const event = await Event.findOneAndUpdate(
+        values,
+        { $push: { participants: participantID } },
+        { new: true }
+      );
+      if (!event) {
         throw new Error("event not found");
       }
       return event;
-    }catch(err){
+    } catch (err) {
       throw err;
     }
   }
 
-  async logoutUser(userID, tokenUUID){
-    try{
-      
-      const user = await User.findOneAndUpdate({_id: userID}, {status: "inactive"}, {new: true}); 
-      await Token.deleteOne({uuid: tokenUUID}); 
+  async participate(values, req) {
+    try {
+      const event = await Event.findOneAndUpdate(
+        values,
+        { $push: { participants: req.user._id } },
+        { new: true }
+      );
+      if (!event) {
+        throw new Error("event not found");
+      }
+      return event;
+    } catch (err) {
+      throw err;
+    }
+  }
+
+  async logoutUser(userID, tokenUUID) {
+    try {
+      const user = await User.findOneAndUpdate(
+        { _id: userID },
+        { status: "inactive" },
+        { new: true }
+      );
+      await Token.deleteOne({ uuid: tokenUUID });
       return user;
-    }catch(err){
+    } catch (err) {
       throw err;
     }
   }

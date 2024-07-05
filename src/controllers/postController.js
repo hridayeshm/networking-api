@@ -1,111 +1,77 @@
-const Post = require("../models/postModel");
-const Comment = require("../models/commentModel");
-const Like = require("../models/likeModel");
-const EventEmitter = require('events');
-const postEmitter = new EventEmitter();
-
+const PostRepository = require("../repositories/postRepository");
+const postRepository = new PostRepository();
 
 class PostController {
-  constructor(){
-    postEmitter.on('postDeleted', this.postDeletionHandler.bind(this));
-  }
-  
-  async createPost(values) {
+  async createPost(req, res, next) {
     try {
-      const post = new Post(values);
-      await post.save();
-      return post;
-    } catch (err) {
-      throw err;
-    }
-  }
-  
-  //const createPostNewx = async (request, response, next) => {}
-  async createPostNew(request, response, next) {
-    try {
-      const {_id} = request.user;
-      const {title, description} = request.body;
-      const newPost = {
-        title,
-        description,
-        owner: _id
-      }
-      const post = new Post(newPost);
-      const createdPost = await post.save();
-      return response.status(200).send(createdPost);
-    } catch (err) {
-      throw err;
-    }
-  }
-
-  async getAllPosts(values, options) {
-    try {
-      const posts = await Post.paginate(values, options);
-      if (!posts || posts.length === 0) {
-        throw new Error("no posts found for this user");
-      }
-      return posts;
-    } catch (err) {
-      throw err;
-    }
-  }
-
-  async getPostById(values) {
-    try {
-      const post = await Post.findOne(values);
-
-      if (post === null) {
-        throw new Error("post not found");
-      }
-      return post;
-    } catch (err) {
-      throw err;
-    }
-  }
-
-  async updatePost(values, updates) {
-    try {
-      const where = {
-//suggested by dai, CHECK LATER //update post doesnt work as of now
+      const values = {
+        title: req.body.title,
+        description: req.body.description,
+        owner: req.user._id,
       };
-      const post = await Post.findOneAndUpdate(where, {$set: updates}, { new: true });
 
-      if (!post) {
-        throw new Error("post to be updated not found");
-      }
-      return post;
+      const post = await postRepository.create(values);
+      console.log(post)
+      res.send(post);
     } catch (err) {
-      throw err;
+      res.send(err);
     }
   }
 
-  async deletePost(values) {
+  async getAllPosts(req, res, next) {
     try {
-      const post = await Post.findOneAndDelete(values);
-      if (!post) {
-        throw new Error("post to be deleted not found");
-      }
-      postEmitter.emit('postDeleted', post._id);
-     
-      return post;
+      const values = { owner: req.user._id };
+      const options = {
+        page: parseInt(req.query.page),
+        limit: parseInt(req.query.limit),
+        skip: parseInt(req.query.skip)
+      };
+
+      const posts = await postRepository.getAll(values, options);
+      res.send(posts);
     } catch (err) {
-      throw err;
+      res.send(err.message);
     }
   }
 
-  async postDeletionHandler(postId) {
+  async getPostById(req, res, next) {
     try {
-     
-      const deletedComments = await Comment.deleteMany({ post: postId });
+      const values = {
+        _id: req.params.id,
+        owner: req.user._id,
+      };
 
-      const deletedLikes = await Like.deleteMany({ post: postId });
-
-      if(deletedComments && deletedLikes){
-        console.log("likes and comments associated to the post also removed");
-      }
-    
+      const post = await postRepository.getById(values);
+      res.send(post);
     } catch (err) {
-      throw new Error("comments and likes associated with the post could not be removed");
+      res.send(err.message);
+    }
+  }
+
+  async updatePost(req, res, next) {
+    try {
+      const filter = {
+        _id: req.params.id,
+        owner: req.user._id,
+      };
+      const updates = req.body;
+
+      const post = await postRepository.update(filter, updates);
+      res.send(post);
+    } catch (err) {
+      res.send(err.message);
+    }
+  }
+
+  async deletePost(req, res, next) {
+    try {
+      const filter = { _id: req.params.id, owner: req.user._id };
+
+      const post = postRepository.delete(filter);
+
+      res.send(post);
+    } catch (err) {
+      res.send(err.message);
     }
   }
 }

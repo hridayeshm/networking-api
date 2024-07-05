@@ -17,6 +17,16 @@ const postSchema = new mongoose.Schema(
     picture: {
       type: Buffer,
     },
+    commentCount: {
+      type: Number, 
+      required: true,
+      default: 0,
+    },
+    likeCount: {
+      type: Number,
+      required: true,
+      default: 0,
+    }
   },
   {
     timestamps: true,

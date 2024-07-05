@@ -6,6 +6,10 @@ class CommentController {
     try {
       const comment = new Comment(values);
       await comment.save();
+      await Post.findOneAndUpdate(
+        { _id: values.post },
+        { $inc: { commentCount: 1 } }
+      );
       return comment;
     } catch (err) {
       throw err;
@@ -51,24 +55,25 @@ class CommentController {
     }
   }
 
-  async deleteCommentByPostOwner(postID, commentID, ownerID){
-    try{
-     const post = await Post.findOne({_id: postID, owner: ownerID});
+  async deleteCommentByPostOwner(postID, commentID, ownerID) {
+    try {
+      const post = await Post.findOne({ _id: postID, owner: ownerID });
 
-     if(!post){
-      throw new Error("post not found or you are authorized to delete this comment");
-     }
+      if (!post) {
+        throw new Error(
+          "post not found or you are authorized to delete this comment"
+        );
+      }
 
-     const comment = await Comment.findOneAndDelete({_id: commentID});
+      const comment = await Comment.findOneAndDelete({ _id: commentID });
 
-     if(!comment){
-      throw new Error("comment not found or could not be deleted");
-     }
+      if (!comment) {
+        throw new Error("comment not found or could not be deleted");
+      }
 
-     return comment
-
-    }catch(err){
-     throw err;
+      return comment;
+    } catch (err) {
+      throw err;
     }
   }
 }
