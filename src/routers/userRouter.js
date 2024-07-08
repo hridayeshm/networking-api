@@ -1,6 +1,6 @@
 import express from 'express';
 const router = express.Router();
-import { registerUser, loginUser, sendFollowRequest,listAllNotifications,respond,listFollowers,listFollowees,changePasssword, showFeed,verifyUser,createEvent,listEvents,addParticipant,participate,logoutUser } from '../controllers/userController.js';
+import { registerUser, loginUser, changePasssword, showFeed,verifyUser,logoutUser } from '../controllers/userController.js';
 
 import auth from "../middlewares/auth.js";
 // const CLIENT_ID = '373933302832';
