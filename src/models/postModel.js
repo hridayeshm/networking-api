@@ -1,12 +1,17 @@
 const mongoose = require("mongoose");
-const mongoosePaginate = require('mongoose-paginate-v2');
+const mongoosePaginate = require("mongoose-paginate-v2");
 
 const postSchema = new mongoose.Schema(
   {
     owner: {
-      type: mongoose.Schema.Types.ObjectId,
-      required: true,
-      ref: "User",
+      id: {
+        type: mongoose.Schema.Types.ObjectId,
+        required: true,
+        ref: "User",
+      },
+      username: {
+        type: String,
+      },
     },
     description: {
       type: String,
@@ -18,7 +23,7 @@ const postSchema = new mongoose.Schema(
       type: Buffer,
     },
     commentCount: {
-      type: Number, 
+      type: Number,
       required: true,
       default: 0,
     },
@@ -26,7 +31,29 @@ const postSchema = new mongoose.Schema(
       type: Number,
       required: true,
       default: 0,
-    }
+    },
+    latestComments: [
+      {
+        content: {
+          type: String,
+        },
+
+        commentedBy: {
+          id: {
+            type: mongoose.Schema.Types.ObjectId,
+            required: true,
+            ref: "User",
+          },
+          username: {
+            type: String,
+            required: true,
+          },
+          profile: {
+            type: String,
+          },
+        },
+      },
+    ],
   },
   {
     timestamps: true,
@@ -37,4 +64,4 @@ postSchema.plugin(mongoosePaginate);
 
 const Post = mongoose.model("Post", postSchema);
 
-module.exports = Post;
+export default Post;

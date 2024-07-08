@@ -1,23 +1,11 @@
-const express = require("express");
-const auth = require("../middlewares/auth");
+import express from 'express';
+import auth from "../middlewares/auth.js";
 const router = express.Router();
-const Comment = require("../models/commentModel");
-const CommentController = require("../controllers/commentController");
 
-router.post("/comment/post/:id", auth, async (req, res) => {
-  try {
-    const values = {
-      post: req.params.id,
-      author: req.user._id,
-      content: req.body.content,
-    };
-    const commentController = new CommentController();
-    const comment = await commentController.addComment(values);
-    res.send(comment);
-  } catch (err) {
-    res.send(err);
-  }
-});
+const CommentController = require("../controllers/commentController");
+const commentController = new CommentController();
+
+router.post("/comment/post/:id", auth, commentController.addComment);
 
 router.get("/comments/post/:id", auth, async (req, res) => {
   try {
@@ -74,4 +62,4 @@ router.delete("/:postID/comment/delete/:id", auth, async(req, res) => {
   }
 });
 
-module.exports = router;
+export default router;

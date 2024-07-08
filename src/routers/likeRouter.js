@@ -1,8 +1,8 @@
-const express = require("express");
-const auth = require("../middlewares/auth");
+import express from 'express';
+import auth from "../middlewares/auth.js";
 const router = express.Router();
-const Like = require("../models/likeModel");
-const LikeController = require("../controllers/likeController");
+
+import {likePost, removeLike} from "../controllers/likeController";
 
 router.post("/like/post/:id", auth, async (req, res) => {
   try {
@@ -10,8 +10,8 @@ router.post("/like/post/:id", auth, async (req, res) => {
       post: req.params.id,
       author: req.user._id,
     };
-    const likeController = new LikeController();
-    const like = await likeController.likePost(values);
+ 
+    const like = await likePost(values);
     res.send(like);
   } catch (err) {
     res.send(err);
@@ -24,12 +24,12 @@ router.delete("/unlike/post/:id", auth, async (req, res) => {
       _id: req.params.id,
       author: req.user._id,
     };
-    const likeController = new LikeController();
-    const removedLike = likeController.removeLike(values);
+   
+    const removedLike = await removeLike(values);
     res.send(removedLike);
   } catch (err) {
     res.send(err);
   }
 });
 
-module.exports = router;
+export default router;

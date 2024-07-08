@@ -1,51 +1,26 @@
-const express = require("express");
+import express from 'express';
 const router = express.Router();
-const Token = require("../models/tokenModel");
-const UserController = require("../controllers/userController");
-const userController = new UserController();
-const auth = require("../middlewares/auth");
+import { registerUser, loginUser, sendFollowRequest,listAllNotifications,respond,listFollowers,listFollowees,changePasssword, showFeed,verifyUser,createEvent,listEvents,addParticipant,participate,logoutUser } from '../controllers/userController.js';
+
+import auth from "../middlewares/auth.js";
 // const CLIENT_ID = '373933302832';
 // const CLIENT_SECRET = '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';
 // const REDIRECT_URI = '<http://localhost:3000/auth/google/callback>';
 
-router.post("/users/register", userController.registerUser);
+router.post("/users/register", registerUser);
 
-router.post("/user/verify/:verificationToken", userController.verifyUser);
+router.post("/user/verify/:verificationToken",verifyUser);
 
-router.post("/user/login", userController.loginUser);
+router.post("/user/login", loginUser);
 
+router.patch("/user/change-password", auth, changePasssword);
 
-router.patch("/user/change-password", auth, async (req, res) => {
-  try {
-    const values = {
-      userID: req.user._id,
-      oldPassword: req.body.oldPassword,
-      newPassword: req.body.newPassword,
-    };
-
-    const newPassword = await userController.changePassword(values);
-    res.send(newPassword);
-  } catch (err) {
-    res.send(err.message);
-  }
-});
-
-router.get("/user/feed", auth, async (req, res) => {
-  try {
-    const values = { _id: req.user._id };
- 
-    const feed = await userController.showFeed(values);
-    res.send(feed);
-  } catch (err) {
-    res.send(err.message);
-  }
-});
+router.get("/user/feed", auth, showFeed);
 
 router.post("/user/logout", auth, async(req, res) => {
   try{
     const userID = req.user._id;
-    const tokenUUID = req.token.uuid;//AAAAAAAAAAAAAAAAAASSSSSSSSSSSSSSSSSSSKKKKKKKKKKKKKKKKKKKKKK why i stored in req.token
-   
+    const tokenUUID = req.token.uuid;
 
     const user = await userController.logoutUser(userID, tokenUUID);
     
@@ -56,7 +31,7 @@ router.post("/user/logout", auth, async(req, res) => {
   }
 });
 
-module.exports = router;
+export default router;
 
 
 

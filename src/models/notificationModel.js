@@ -1,27 +1,32 @@
 const mongoose = require('mongoose');
 
-const notifSchema = new mongoose.Schema({
+const notificationSchema = new mongoose.Schema({
     follower: {
         type: mongoose.Schema.Types.ObjectId,
-        required : true
+        required : true,
+        ref: 'User'
     },
     followee: {
         type: mongoose.Schema.Types.ObjectId,
-        required: true
+        required: true,
+        ref: 'User'
     },
     from: {
         type: mongoose.Schema.Types.ObjectId,
-        required: true
+        required: true,
+        ref: 'User'
     },
     to: {
         type: mongoose.Schema.Types.ObjectId,
-        required: true
+        required: true,
+        ref: 'User'
     },
     status: {
-        type: String
+        type: String,
+        enum: ["requested", "accepted", "rejected"]
     }
 });
 
-const Notification = mongoose.model("Notification", notifSchema);
+const Notification = mongoose.model("Notification", notificationSchema);
 
-module.exports = Notification;
+export default Notification;

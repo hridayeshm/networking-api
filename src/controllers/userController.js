@@ -5,14 +5,15 @@ const Post = require("../models/postModel");
 const sendVerficationMail = require("../service/verificationMail");
 const Event = require("../models/eventModel");
 const Token = require("../models/tokenModel");
+const User = require("../models/userModel");
 const UserRepository = require("../repositories/userRepository");
 const userRepository = new UserRepository();
 const TokenRepository = require("../repositories/tokenRepository");
 const tokenRepository = new TokenRepository();
 const { v4: uuidv4 } = require("uuid");
 
-class UserController {
-  async registerUser(req, res, next) {
+
+  export const registerUser = async (req, res, next) => {
     try {
       const values = {
         username: req.body.username,
@@ -31,14 +32,12 @@ class UserController {
     }
   }
 
-  async loginUser(req, res, next) {
-
+ export const loginUser = async(req, res, next) => {
     try {
       const filter = req.body;
-  
-  
+
       const user = await userRepository.login(filter);
-      
+
       if (!user) {
         throw new Error("user not found");
       }
@@ -53,20 +52,17 @@ class UserController {
       if (user.status === "blocked") {
         throw new Error("please contact administrator");
       }
-  
+
       const [token, email, uuid] = await user.generateAuthToken();
-      const tokenDoc = await tokenRepository.createToken(email, uuid);
-    
-      
-  
+      const tokenDoc = await tokenRepository.createToken(email, uuid, user);
+
       res.send([token, tokenDoc]);
     } catch (err) {
       console.log(err);
     }
-    
   }
 
-  async sendFollowRequest(values) {
+  export const sendFollowRequest = async(values) => {
     try {
       const notification = new Notification(values);
       await notification.save();
@@ -76,9 +72,32 @@ class UserController {
     }
   }
 
-  async listAllNotifications(values) {
+  export const listAllNotifications = async(values) => {
     try {
-      const notifications = await Notification.find(values);
+      const notifications = await Notification.aggregate([
+        { $match:  values  },
+        {
+          $lookup: {
+            from: "users",
+            localField: "follower",
+            foreignField: "_id",
+            as: "follower",
+          },
+        },
+        {
+          $project: {
+            "follower.username": 1,
+            "follower._id": 1,
+            "follower.email": 1,
+            "follower.followers": 1,
+            status: 1
+          },
+        },
+        {
+          $sort: { _id: 1 },
+        },
+      ]);
+     
       if (!notifications || notifications.length === 0) {
         throw new Error("no notifications found");
       }
@@ -89,7 +108,7 @@ class UserController {
     }
   }
 
-  async respond(values, action) {
+  export const respond = async(values, action) => {
     try {
       if (action.toLowerCase() === "reject") {
         const updates = {
@@ -101,7 +120,7 @@ class UserController {
           updates,
           { new: true }
         );
-
+        
         return notification;
       } else if (action.toLowerCase() === "accept") {
         const updates = {
@@ -113,7 +132,7 @@ class UserController {
           updates,
           { new: true }
         );
-
+       
         const followedUser = await User.findOneAndUpdate(
           { _id: values.to },
           { $push: { followers: values.from } },
@@ -139,14 +158,14 @@ class UserController {
     }
   }
 
-  async listFollowers(values) {
+  export const listFollowers = async(values) => {
     try {
       const followers = await User.find(values)
         .populate("followers", "_id username")
         .select("followers")
         .exec();
       if (!followers) {
-        throw new Error("no followers");
+        return "no followers";
       }
       return followers;
     } catch (err) {
@@ -154,7 +173,7 @@ class UserController {
     }
   }
 
-  async listFollowees(values) {
+  export const listFollowees = async(values) => {
     try {
       const followees = await User.find(values)
         .populate("followees", "_id username")
@@ -168,49 +187,46 @@ class UserController {
     }
   }
 
-  async changePasssword(values) {
+  export const changePasssword = async(req, res, next) => {
     try {
-      const user = await User.findOne({ _id: values.userID });
-
-      if (!(await bcrypt.compare(values.oldPassword, user.password))) {
-        throw new Error("old password does not match");
-      }
-
-      user.password = values.newPassword;
-      await user.save();
-      return user;
+      const values = {
+        userID: req.user._id,
+        oldPassword: req.body.oldPassword,
+        newPassword: req.body.newPassword,
+      };
+  
+      const newPassword = await userRepository.changePassword(values);
+      res.send(newPassword);
     } catch (err) {
-      console.log(err, "async");
-      throw err;
+      res.send(err.message);
     }
+  
   }
 
-  async showFeed(values) {
+  export const showFeed = async(req, res, next) => {
     try {
-      const user = await User.findOne(values).populate("followees", "_id");
-      console.log(user);
-
-      const posts = await Post.find({ owner: { $in: user.followees } });
-      // for populating comments also when getting posts, use virtual field
-      return posts;
+      const values = { _id: req.user._id };
+   
+      const feed = await userRepository.showFeed(values);
+      res.send(feed);
     } catch (err) {
-      throw err;
+      res.send(err.message);
     }
+ 
   }
 
-  async verifyUser(req, res, next) {
+  export const verifyUser = async(req, res, next) => {
     try {
       const emailVerificationToken = req.params.verificationToken;
-     
+
       const user = await userRepository.verify(emailVerificationToken);
       res.send(user);
     } catch (err) {
       res.send(err);
-    }  
- 
+    }
   }
 
-  async createEvent(values) {
+  export const createEvent = async(values) => {
     try {
       const event = new Event(values);
       if (!event) {
@@ -223,7 +239,7 @@ class UserController {
     }
   }
 
-  async listEvents() {
+  export const listEvents = async() => {
     try {
       const events = Event.find();
       return events;
@@ -232,7 +248,7 @@ class UserController {
     }
   }
 
-  async addParticipant(values, participantID) {
+  export const addParticipant = async(values, participantID) => {
     try {
       const event = await Event.findOneAndUpdate(
         values,
@@ -248,7 +264,7 @@ class UserController {
     }
   }
 
-  async participate(values, req) {
+  export const participate = async(values, req) => {
     try {
       const event = await Event.findOneAndUpdate(
         values,
@@ -264,7 +280,7 @@ class UserController {
     }
   }
 
-  async logoutUser(userID, tokenUUID) {
+  export const logoutUser = async(userID, tokenUUID) => {
     try {
       const user = await User.findOneAndUpdate(
         { _id: userID },
@@ -277,6 +293,6 @@ class UserController {
       throw err;
     }
   }
-}
 
-module.exports = UserController;
+
+

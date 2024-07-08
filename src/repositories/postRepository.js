@@ -6,6 +6,8 @@ class PostRepository {
   async create(values) {
     try {
       const post = new Post(values);
+      
+    
       await post.save();
       return post;
     } catch (err) {
@@ -26,14 +28,7 @@ class PostRepository {
             as: "postCreator",
           },
         },
-        {
-          $lookup: {
-            from: "comments",
-            localField: "_id",
-            foreignField: "post",
-            as: "comments",
-          },
-        },
+
         {
           $lookup: {
             from: "likes",
@@ -47,13 +42,15 @@ class PostRepository {
           $project: {
             title: 1,
             description: 1,
-            commentCount: 1,
+          
             likeCount: 1,
+           
             "postCreator.username": 1,
-            "postCreator._id": 1,
-            "comments.author": 1,
-            "comments.content": 1,
-            "likes.author": 1,
+            "postCreator._id": 1, 
+            
+            
+           "likes.author": 1,
+            latestComments:1,  // ELIMINATED THE NEED TO LOOKUP COMMENTS
           },
         },
         {
@@ -77,6 +74,7 @@ class PostRepository {
   async getById(filter) {
     try {
       const post = await Post.findOne(filter);
+      
 
       if (post === null) {
         throw new Error("post not found");

@@ -91,7 +91,7 @@ userSchema.methods.generateAuthToken = async function () {
   //     console.log("saved");      //CHECK LATER
   // })
 
-  console.log(jwt_payload.username, jwt_payload.uuid);
+
   return [token, jwt_payload.email, jwt_payload.uuid];
 };
 
@@ -123,4 +123,4 @@ userSchema.pre("save", async function (next) {
 
 const User = mongoose.model("User", userSchema);
 
-module.exports = User;
+export default User;

@@ -7,11 +7,12 @@ class PostController {
       const values = {
         title: req.body.title,
         description: req.body.description,
-        owner: req.user._id,
+        owner: { id: req.user._id, username: req.user.username },
       };
+    
 
       const post = await postRepository.create(values);
-      console.log(post)
+
       res.send(post);
     } catch (err) {
       res.send(err);
@@ -20,14 +21,14 @@ class PostController {
 
   async getAllPosts(req, res, next) {
     try {
-      const values = { owner: req.user._id };
+      const filter = { owner: { id: req.user._id, username: req.user.username }};
       const options = {
         page: parseInt(req.query.page),
         limit: parseInt(req.query.limit),
-        skip: parseInt(req.query.skip)
+        skip: parseInt(req.query.skip),
       };
 
-      const posts = await postRepository.getAll(values, options);
+      const posts = await postRepository.getAll(filter, options);
       res.send(posts);
     } catch (err) {
       res.send(err.message);
@@ -36,12 +37,11 @@ class PostController {
 
   async getPostById(req, res, next) {
     try {
-      const values = {
-        _id: req.params.id,
-        owner: req.user._id,
+      const filter = {
+        owner: { id: req.user._id, username: req.user.username }
       };
 
-      const post = await postRepository.getById(values);
+      const post = await postRepository.getById(filter);
       res.send(post);
     } catch (err) {
       res.send(err.message);

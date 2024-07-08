@@ -1,9 +1,9 @@
-const jwt = require("jsonwebtoken");
-const User = require("../models/userModel");
-const Token = require("../models/tokenModel");
+import jwt from 'jsonwebtoken';
+import User from "../models/userModel";
+import Token from "../models/tokenModel";
 require("dotenv").config();
 
-const auth = async (req, res, next) => {
+export const auth = async (req, res, next) => {
   try {
     //console.log("Request Headers:", req.headers);
     const token = req.header("Authorization").replace("Bearer ", "");
@@ -29,4 +29,4 @@ const auth = async (req, res, next) => {
   }
 };
 
-module.exports = auth;
+

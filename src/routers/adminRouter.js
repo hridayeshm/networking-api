@@ -1,9 +1,9 @@
-const express = require("express");
+import express from "express";
 const router = express.Router();
-const Admin = require("../models/adminModel");
-const AdminController = require("../controllers/admin-controller/adminController");
-const adminAuth = require("../middlewares/adminAuth");
-const Token = require("../models/tokenModel");
+
+const AdminController = require("../controllers/adminController/adminController");
+import adminAuth from "../middlewares/adminAuth.js";
+import Token from "../models/tokenModel.js";
 
 router.post("/admin/login", async (req, res) => {
   try {
@@ -42,13 +42,13 @@ router.get("/admin/get-all-posts", adminAuth, async (req, res) => {
 });
 
 router.post("/admin/block/:id", adminAuth, async (req, res) => {
-  try{
+  try {
     const userID = req.params.id;
     const adminController = new AdminController();
     const [blockedUser, deletedToken] = adminController.blockUser(userID);
     res.send([blockedUser, deletedToken]);
-  }catch(err){
-    console.log(err)// inside blockUser
+  } catch (err) {
+    console.log(err); // inside blockUser
   }
 });
 
@@ -64,4 +64,4 @@ router.post("/admin/logout", adminAuth, async (req, res) => {
   }
 });
 
-module.exports = router;
+export default router;

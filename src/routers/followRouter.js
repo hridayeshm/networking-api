@@ -1,8 +1,8 @@
-const express = require("express");
+import express from 'express'
 const router = express.Router();
-const User = require("../models/userModel");
+
 const UserController = require("../controllers/userController");
-const auth = require("../middlewares/auth");
+import auth from "../middlewares/auth.js"
 
 router.post("/user/follow/:id", auth, async (req, res) => {
     try {
@@ -67,4 +67,4 @@ router.post("/user/follow/:id", auth, async (req, res) => {
     }
   });
 
-  module.exports = router;
+export default router;

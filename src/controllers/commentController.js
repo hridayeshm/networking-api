@@ -2,14 +2,38 @@ const Comment = require("../models/commentModel");
 const Post = require("../models/postModel");
 
 class CommentController {
-  async addComment(values) {
+  async addComment(values, req) {
     try {
       const comment = new Comment(values);
       await comment.save();
-      await Post.findOneAndUpdate(
-        { _id: values.post },
-        { $inc: { commentCount: 1 } }
+  
+      const updatedPost = await Post.findOneAndUpdate(
+        { _id: values.post }, 
+        {
+          $push: {
+            latestComments: { 
+              $each: [{
+                _id: comment._id,
+                content: comment.content,
+                commentedBy: {
+                  id: comment.author,
+                  username: req.user.username,
+                  profile: req.user.profile,
+                },
+              }],
+              $position: 0,
+              $slice: 2
+            }
+          },
+          $inc: { commentCount: 1 }
+        },
+        { new: true }
       );
+      
+      if(!updatedPost){
+        throw new Error("could not comment on the post");
+      }
+
       return comment;
     } catch (err) {
       throw err;
