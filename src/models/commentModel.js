@@ -1,5 +1,5 @@
-const mongoose = require("mongoose");
-const { type } = require("os");
+import mongoose from "mongoose"
+import { type } from "os";
 
 const commentSchema = new mongoose.Schema({
   post: {

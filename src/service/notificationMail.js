@@ -1,7 +1,7 @@
-const Event = require("../models/eventModel");
-const cron = require("node-cron");
-const moment = require("moment");
-const nodemailer = require("nodemailer");
+import Event from "../models/eventModel.js"
+import cron from "node-cron"
+import moment from "moment"
+import nodemailer from "nodemailer"
 
 const transporter = nodemailer.createTransport({
   host: "sandbox.smtp.mailtrap.io",
@@ -52,4 +52,4 @@ cron.schedule("0 * * * *", async () => {
 });
 
 
-module.exports = cron;
+export default cron;

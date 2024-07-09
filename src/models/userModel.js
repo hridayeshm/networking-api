@@ -1,9 +1,10 @@
-const mongoose = require("mongoose");
-const validator = require("validator");
-const jwt = require("jsonwebtoken");
-require("dotenv").config();
-const bcrypt = require("bcrypt");
-const { v4: uuidv4 } = require("uuid");
+import mongoose from "mongoose";
+import validator from "validator";
+import jwt from "jsonwebtoken";
+import dotenv from "dotenv";
+dotenv.config();
+import bcrypt from "bcrypt";
+import { v4 as uuidv4 } from "uuid";
 
 const userSchema = new mongoose.Schema(
   {
@@ -77,7 +78,7 @@ userSchema.methods.toJSON = function () {
 userSchema.methods.generateAuthToken = async function () {
   const user = this;
   const uuid = uuidv4();
-  
+
   const jwt_payload = {
     _id: user._id.toString(),
     email: user.email,
@@ -90,7 +91,6 @@ userSchema.methods.generateAuthToken = async function () {
   // await user.save().then(() => {
   //     console.log("saved");      //CHECK LATER
   // })
-
 
   return [token, jwt_payload.email, jwt_payload.uuid];
 };

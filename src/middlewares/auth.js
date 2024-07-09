@@ -1,9 +1,10 @@
 import jwt from 'jsonwebtoken';
-import User from "../models/userModel";
-import Token from "../models/tokenModel";
-require("dotenv").config();
+import User from "../models/userModel.js";
+import Token from "../models/tokenModel.js";
+import dotenv from "dotenv"
+dotenv.config()
 
-export const auth = async (req, res, next) => {
+ const auth = async (req, res, next) => {
   try {
     //console.log("Request Headers:", req.headers);
     const token = req.header("Authorization").replace("Bearer ", "");
@@ -29,4 +30,4 @@ export const auth = async (req, res, next) => {
   }
 };
 
-
+export default auth;

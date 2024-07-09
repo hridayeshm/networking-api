@@ -1,5 +1,7 @@
-const EventEmitter = require("events");
+import { EventEmitter } from "events";
 const postEmitter = new EventEmitter();
+import Comment from "../models/commentModel.js"
+import Like from "../models/likeModel.js"
 
 const postDeletedEvent = (post) => {
   postEmitter.emit("postDeleted", post._id);
@@ -23,4 +25,4 @@ const postDeletedHandler = async() => {
 
 postEmitter.on("postDeleted",postDeletedHandler);
 
-module.exports = postDeletedEvent;
+export default postDeletedEvent;

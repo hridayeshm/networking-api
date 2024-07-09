@@ -1,5 +1,4 @@
-const mongoose = require("mongoose");
-const { v4: uuidv4 } = require("uuid");
+import mongoose from "mongoose"
 
 const tokenSchema = new mongoose.Schema({
   email: {

@@ -1,16 +1,10 @@
-const bcrypt = require("bcrypt");
-const Notification = require("../models/notificationModel");
-const Follow = require("../models/followModel");
-const Post = require("../models/postModel");
-const sendVerficationMail = require("../service/verificationMail");
-const Event = require("../models/eventModel");
-const Token = require("../models/tokenModel");
-const User = require("../models/userModel");
-const UserRepository = require("../repositories/userRepository");
-const userRepository = new UserRepository();
-const TokenRepository = require("../repositories/tokenRepository");
-const tokenRepository = new TokenRepository();
-const { v4: uuidv4 } = require("uuid");
+import bcrypt from 'bcrypt'
+import sendVerficationMail from "../service/verificationMail.js"
+import {register, verify, login, changePw, show} from "../repositories/userRepository.js";
+import {createToken} from "../repositories/tokenRepository.js"
+import { v4 as uuidv4 } from 'uuid';
+import { listFollowees, listFollowers, listNotifications, sendRequest } from '../repositories/followRepository.js'
+import { add, create, list, participate } from '../repositories/eventRepository.js'
 
 
   export const registerUser = async (req, res, next) => {
@@ -22,7 +16,7 @@ const { v4: uuidv4 } = require("uuid");
         emailVerificationToken: uuidv4(),
       };
 
-      const user = await userRepository.register(values);
+      const user = await register(values);
 
       sendVerficationMail(values);
 
@@ -36,7 +30,7 @@ const { v4: uuidv4 } = require("uuid");
     try {
       const filter = req.body;
 
-      const user = await userRepository.login(filter);
+      const user = await login(filter);
 
       if (!user) {
         throw new Error("user not found");
@@ -54,7 +48,7 @@ const { v4: uuidv4 } = require("uuid");
       }
 
       const [token, email, uuid] = await user.generateAuthToken();
-      const tokenDoc = await tokenRepository.createToken(email, uuid, user);
+      const tokenDoc = await createToken(email, uuid, user);
 
       res.send([token, tokenDoc]);
     } catch (err) {
@@ -62,129 +56,73 @@ const { v4: uuidv4 } = require("uuid");
     }
   }
 
-  export const sendFollowRequest = async(values) => {
+  export const sendFollowRequest = async(req, res, next) => {
     try {
-      const notification = new Notification(values);
-      await notification.save();
-      return notification;
-    } catch (err) {
-      throw err;
-    }
-  }
-
-  export const listAllNotifications = async(values) => {
-    try {
-      const notifications = await Notification.aggregate([
-        { $match:  values  },
-        {
-          $lookup: {
-            from: "users",
-            localField: "follower",
-            foreignField: "_id",
-            as: "follower",
-          },
-        },
-        {
-          $project: {
-            "follower.username": 1,
-            "follower._id": 1,
-            "follower.email": 1,
-            "follower.followers": 1,
-            status: 1
-          },
-        },
-        {
-          $sort: { _id: 1 },
-        },
-      ]);
+      const values = {
+        follower: req.user._id,
+        followee: req.params.id,
+        from: req.user._id,
+        to: req.params.id,
+        status: "requested",
+      };
      
-      if (!notifications || notifications.length === 0) {
-        throw new Error("no notifications found");
-      }
-
-      return notifications;
+      const notification = await sendRequest(values);
+      res.send(notification);
     } catch (err) {
-      throw err;
+      res.send(err);
     }
+ 
   }
 
-  export const respond = async(values, action) => {
+  export const listAllNotifications = async(req, res, next) => {
     try {
-      if (action.toLowerCase() === "reject") {
-        const updates = {
-          status: "rejected",
-        };
-
-        const notification = await Notification.findOneAndUpdate(
-          values,
-          updates,
-          { new: true }
-        );
-        
-        return notification;
-      } else if (action.toLowerCase() === "accept") {
-        const updates = {
-          status: "accepted",
-        };
-
-        const notification = await Notification.findOneAndUpdate(
-          values,
-          updates,
-          { new: true }
-        );
-       
-        const followedUser = await User.findOneAndUpdate(
-          { _id: values.to },
-          { $push: { followers: values.from } },
-          { new: true }
-        );
-
-        const followingUser = await User.findOneAndUpdate(
-          { _id: values.from },
-          { $push: { followees: values.to } },
-          { new: true }
-        );
-
-        const follow = new Follow({
-          follower: values.from,
-          followee: values.to,
-        });
-        await follow.save();
-
-        return notification;
-      }
+      const values = { to: req.user._id };
+     
+      const notifications = await listNotifications(values);
+      res.send(notifications);
     } catch (err) {
-      throw err;
+      res.send(err);
     }
+  
   }
 
-  export const listFollowers = async(values) => {
-    try {
-      const followers = await User.find(values)
-        .populate("followers", "_id username")
-        .select("followers")
-        .exec();
-      if (!followers) {
-        return "no followers";
-      }
-      return followers;
-    } catch (err) {
-      throw err;
+  export const respond = async(req, res, next) => {
+
+    try{
+      const action = req.params.action;
+      const values = { from: req.params.id, to: req.user._id };
+  
+    
+      const response = await respond(values, action);
+      res.send(response);
+    }catch(err){
+      res.send(err);
     }
+ 
   }
 
-  export const listFollowees = async(values) => {
-    try {
-      const followees = await User.find(values)
-        .populate("followees", "_id username")
-        .select("followees")
-        .exec();
-      if (!followees) {
-        throw new Error("no followees");
-      }
-    } catch (err) {
-      throw err;
+  export const listAllFollowers = async(req, res, next) => {
+    try{
+      const values = {_id : req.user._id};
+    
+      const followers = await listFollowers(values);
+      res.send(followers);
+    }catch(err){
+      res.send(err.message);
     }
+  
+  }
+
+  export const listAllFollowees = async(req,res, next) => {
+    try{
+      const values = {_id : req.user._id};
+      
+      const followees = await listFollowees(values);
+      res.send(followees);
+    }catch(err){
+      res.send(err.message);
+    }
+
   }
 
   export const changePasssword = async(req, res, next) => {
@@ -195,7 +133,7 @@ const { v4: uuidv4 } = require("uuid");
         newPassword: req.body.newPassword,
       };
   
-      const newPassword = await userRepository.changePassword(values);
+      const newPassword = await changePw(values);
       res.send(newPassword);
     } catch (err) {
       res.send(err.message);
@@ -207,7 +145,7 @@ const { v4: uuidv4 } = require("uuid");
     try {
       const values = { _id: req.user._id };
    
-      const feed = await userRepository.showFeed(values);
+      const feed = await show(values);
       res.send(feed);
     } catch (err) {
       res.send(err.message);
@@ -219,79 +157,87 @@ const { v4: uuidv4 } = require("uuid");
     try {
       const emailVerificationToken = req.params.verificationToken;
 
-      const user = await userRepository.verify(emailVerificationToken);
+      const user = await verify(emailVerificationToken);
       res.send(user);
     } catch (err) {
       res.send(err);
     }
   }
 
-  export const createEvent = async(values) => {
+  export const createEvent = async(req, res, next) => {
     try {
-      const event = new Event(values);
-      if (!event) {
-        throw new Error("failed to create event");
-      }
-      await event.save();
-      return event;
+      const values = {
+        title: req.body.title,
+        description: req.body.description,
+        startDate: req.body.startDate,
+        endDate: req.body.endDate,
+        location: req.body.location,
+        status: "active",
+        organizer: req.user._id,
+      };
+    
+      const event = await create(values);
+      res.send(event);
     } catch (err) {
-      throw err;
+      res.send(err.message);
     }
+  
   }
 
-  export const listEvents = async() => {
+  export const listEvents = async(req, res, next) => {
     try {
-      const events = Event.find();
-      return events;
+
+      const events = await list();
+      res.send(events);
     } catch (err) {
-      throw err;
+      res.send(err.message);
     }
+  
   }
 
-  export const addParticipant = async(values, participantID) => {
+  export const addParticipant = async(req, res, next) => {
     try {
-      const event = await Event.findOneAndUpdate(
-        values,
-        { $push: { participants: participantID } },
-        { new: true }
-      );
-      if (!event) {
-        throw new Error("event not found");
-      }
-      return event;
+      const participantID = req.params.id;
+      const values = {
+        organizer: req.user._id,
+      };
+   
+      const event = await add(values, participantID);
+      res.send(event);
     } catch (err) {
-      throw err;
+      res.send(err.message);
     }
+  
   }
 
-  export const participate = async(values, req) => {
+  export const userParticipate = async(req, res ,next) => {
     try {
-      const event = await Event.findOneAndUpdate(
-        values,
-        { $push: { participants: req.user._id } },
-        { new: true }
-      );
-      if (!event) {
-        throw new Error("event not found");
-      }
-      return event;
+      const values = {
+        _id: req.params.eventID,
+      };
+  
+    
+      const event = await participate(values, req);
+      res.send(event);
     } catch (err) {
-      throw err;
+      res.send(err.message);
     }
+
   }
 
-  export const logoutUser = async(userID, tokenUUID) => {
-    try {
-      const user = await User.findOneAndUpdate(
-        { _id: userID },
-        { status: "inactive" },
-        { new: true }
-      );
-      await Token.deleteOne({ uuid: tokenUUID });
-      return user;
-    } catch (err) {
-      throw err;
+  export const logoutUser = async(req, res, next) => {
+    try{
+      const userID = req.user._id;
+      const tokenUUID = req.token.uuid;
+  
+      const user = await logout(userID, tokenUUID);
+      
+      res.send(user);
+  
+    }catch(err){
+      res.send(err.message);
     }
+
   }
 
 

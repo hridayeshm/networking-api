@@ -1,78 +1,86 @@
-const PostRepository = require("../repositories/postRepository");
-const postRepository = new PostRepository();
+import {
+  create,
+  getAll,
+  getById,
+  update,
+  deletePost,
+} from "../repositories/postRepository.js";
 
-class PostController {
-  async createPost(req, res, next) {
-    try {
-      const values = {
-        title: req.body.title,
-        description: req.body.description,
-        owner: { id: req.user._id, username: req.user.username },
-      };
-    
+export const createPost = async (req, res, next) => {
+  try {
+    const values = {
+      title: req.body.title,
+      description: req.body.description,
+      owner: { id: req.user._id, username: req.user.username },
+    };
 
-      const post = await postRepository.create(values);
+    const post = await create(values);
 
-      res.send(post);
-    } catch (err) {
-      res.send(err);
-    }
+    res.send(post);
+  } catch (err) {
+    res.send(err);
   }
+};
 
-  async getAllPosts(req, res, next) {
-    try {
-      const filter = { owner: { id: req.user._id, username: req.user.username }};
-      const options = {
-        page: parseInt(req.query.page),
-        limit: parseInt(req.query.limit),
-        skip: parseInt(req.query.skip),
-      };
+export const getAllPosts = async (req, res, next) => {
+  try {
+    const filter = { owner: { id: req.user._id, username: req.user.username } };
+    const options = {
+      page: parseInt(req.query.page),
+      limit: parseInt(req.query.limit),
+      skip: parseInt(req.query.skip),
+    };
 
-      const posts = await postRepository.getAll(filter, options);
-      res.send(posts);
-    } catch (err) {
-      res.send(err.message);
-    }
+    const posts = await getAll(filter, options);
+    res.send(posts);
+  } catch (err) {
+    res.send(err.message);
   }
+};
 
-  async getPostById(req, res, next) {
-    try {
-      const filter = {
-        owner: { id: req.user._id, username: req.user.username }
-      };
+export const getPostById = async (req, res, next) => {
+  try {
+    const filter = {
+      _id: req.params.id,
+      owner: { id: req.user._id, username: req.user.username },
+    };
 
-      const post = await postRepository.getById(filter);
-      res.send(post);
-    } catch (err) {
-      res.send(err.message);
-    }
+    const post = await getById(filter);
+    res.send(post);
+  } catch (err) {
+    res.send(err.message);
   }
+};
 
-  async updatePost(req, res, next) {
-    try {
-      const filter = {
-        _id: req.params.id,
-        owner: req.user._id,
-      };
-      const updates = req.body;
+export const updatePost = async (req, res, next) => {
+  try {
+    const filter = {
+      _id: req.params.id,
+      owner: {
+        id: req.user._id,
+        username: req.user.username,
+      },
+    };
+    const updates = req.body;
 
-      const post = await postRepository.update(filter, updates);
-      res.send(post);
-    } catch (err) {
-      res.send(err.message);
-    }
+    const post = await update(filter, updates);
+    res.send(post);
+  } catch (err) {
+    res.send(err.message);
   }
+};
 
-  async deletePost(req, res, next) {
-    try {
-      const filter = { _id: req.params.id, owner: req.user._id };
+export const deletePostById = async (req, res, next) => {
+  try {
+    const filter = {
+      _id: req.params.id,
+      owner: { id: req.user._id, username: req.user.username },
+    };
 
-      const post = postRepository.delete(filter);
+    const post = await deletePost(filter);
 
-      res.send(post);
-    } catch (err) {
-      res.send(err.message);
-    }
+    res.send(post);
+  } catch (err) {
+    res.send(err.message);
   }
-}
-module.exports = PostController;
+};

@@ -1,105 +1,88 @@
-const Comment = require("../models/commentModel");
-const Post = require("../models/postModel");
 
-class CommentController {
-  async addComment(values, req) {
+import { view, update, deleteCommentAuthor, deleteCommentPostOwner, add } from "../repositories/commentRepository.js";
+
+
+  export const addComment = async(req, res, next) => {
+
     try {
-      const comment = new Comment(values);
-      await comment.save();
+   
+      const values = {
+        post: req.params.id,
+        author: req.user._id,
+        content: req.body.content,
+      };
   
-      const updatedPost = await Post.findOneAndUpdate(
-        { _id: values.post }, 
-        {
-          $push: {
-            latestComments: { 
-              $each: [{
-                _id: comment._id,
-                content: comment.content,
-                commentedBy: {
-                  id: comment.author,
-                  username: req.user.username,
-                  profile: req.user.profile,
-                },
-              }],
-              $position: 0,
-              $slice: 2
-            }
-          },
-          $inc: { commentCount: 1 }
-        },
-        { new: true }
-      );
+    
+      const comment = await add(values, req);
+    
+    
+      res.send(comment);
+    } catch (err) {
+      res.send(err);
+    }
+
+  }
+
+  export const viewComments = async(req, res, next) => {
+    try {
+      const values = {
+        post: req.params.id,
+      };
+     
+      const comments = await view(values);
+      res.send(comments);
+    } catch (err) {
+      res.send(err.message)
+    }
+
+  }
+
+  export const updateComment = async(req, res, next) => {
+    try {
+      const values = {
+        _id: req.params.id,
+        author: req.user._id,
+        content: req.body.content,
+      };
+  
+  
+      const updatedComment = await update(values);
+      res.send(updatedComment);
+    } catch (err) {
+      res.send(err.message);
+    }
+
+  }
+
+  export const deleteCommentByAuthor = async(req, res, next) => {
+
+    try {
+      const values = {
+        _id: req.params.id,
+        author: req.user._id,
+      };
+    
+      const deletedComment = await deleteCommentAuthor(values);
+      res.send(deletedComment);
+    } catch (err) {
+      res.send(err.message);
+    }
+
+  }
+
+  export const deleteCommentByPostOwner = async(req, res, next) => {
+
+    try{
+      const postID = req.params.postID;
+      const commentID = req.params.id;
+      const ownerID = req.user._id;
+     
       
-      if(!updatedPost){
-        throw new Error("could not comment on the post");
-      }
-
-      return comment;
-    } catch (err) {
-      throw err;
+      const deletedComment = await deleteCommentPostOwner(postID, commentID, ownerID);
+      res.send(deletedComment); 
+    }catch(err){
+      res.send(err.message);
     }
+
   }
 
-  async viewComments(values) {
-    try {
-      const comments = await Comment.find(values);
-      if (!comments) {
-        throw new Error("no comments found for the post");
-      }
-      return comments;
-    } catch (err) {
-      throw err;
-    }
-  }
-
-  async updateComment(values) {
-    try {
-      const updatedComment = await Comment.findOneAndUpdate(values, {
-        new: true,
-      });
-      if (!updatedComment) {
-        throw new Error("comment to be updated not found");
-      }
-      await updatedComment.save();
-      return updatedComment;
-    } catch (err) {
-      throw err;
-    }
-  }
-
-  async deleteComment(values) {
-    try {
-      const deletedComment = await Comment.findOneAndDelete(values);
-      if (!deletedComment) {
-        throw new Error("comment to be deleted not found");
-      }
-      return deletedComment;
-    } catch (err) {
-      throw err;
-    }
-  }
-
-  async deleteCommentByPostOwner(postID, commentID, ownerID) {
-    try {
-      const post = await Post.findOne({ _id: postID, owner: ownerID });
-
-      if (!post) {
-        throw new Error(
-          "post not found or you are authorized to delete this comment"
-        );
-      }
-
-      const comment = await Comment.findOneAndDelete({ _id: commentID });
-
-      if (!comment) {
-        throw new Error("comment not found or could not be deleted");
-      }
-
-      return comment;
-    } catch (err) {
-      throw err;
-    }
-  }
-}
-
-module.exports = CommentController;

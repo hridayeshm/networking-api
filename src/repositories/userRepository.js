@@ -1,8 +1,9 @@
-const User = require("../models/userModel");
-const Post = require("../models/postModel");
+import User from "../models/userModel.js"
+import Post from "../models/postModel.js"
+import bcrypt from "bcrypt"
 
-class UserRepository {
-  async register(values) {
+
+  export const register = async(values) => {
     try {
       const user = new User(values);
 
@@ -13,7 +14,7 @@ class UserRepository {
     }
   }
 
-  async verify(emailVerificationToken) {
+  export const verify = async(emailVerificationToken) => {
     try {
       const user = await User.findOneAndUpdate(
         { emailVerificationToken },
@@ -34,7 +35,7 @@ class UserRepository {
     }
   }
 
-  async login(filter){
+  export const login = async(filter) => {
     try {
         const user = await User.findOne({ email: filter.email });
   
@@ -44,7 +45,7 @@ class UserRepository {
       }
   }
 
-  async changePassword(values){
+  export const changePw = async(values) => {
     try {
       const user = await User.findOne({ _id: values.userID });
 
@@ -61,18 +62,32 @@ class UserRepository {
     }
   }
 
-  async showFeed(values){
+  export const show = async(values) => {
     try {
       const user = await User.findOne(values).populate("followees", "_id");
       console.log(user);
 
-      const posts = await Post.find({ owner: { $in: user.followees } }); // BECAUSE FOLLOWEES ONLY CONTAIN ID SO DIRECT PASS
+      const posts = await Post.find({ owner: { $in: user.followees } }); // BECAUSE FOLLOWEES ONLY CONTAIN ID(selected)SO DIRECT PASS
       // for populating comments also when getting posts, use virtual field
       return posts;
     } catch (err) {
       throw err;
     }
   }
-}
 
-module.exports = UserRepository;
+  export const logout = async(userID, tokenUUID) => {
+    try {
+      const user = await User.findOneAndUpdate(
+        { _id: userID },
+        { status: "inactive" },
+        { new: true }
+      );
+      await Token.deleteOne({ uuid: tokenUUID });
+      return user;
+    } catch (err) {
+      throw err;
+    }
+  }
+
+
+

@@ -1,71 +1,68 @@
-const Admin = require("../../models/adminModel");
-const Post = require("../../models/postModel");
-const User = require("../../models/userModel");
-const Token = require("../../models/tokenModel");
+import { listPosts, listUsers, login, block, logout } from "../../repositories/adminRepository/adminRepository.js";
 
-class AdminController {
-  async login(values) {
+
+  export const adminLogin = async(req, res, next) => {
     try {
-      const admin = await Admin.findOne(values);
-
-      if (!admin) {
-        throw new Error("no admin found");
-      }
-
-      return admin;
-    } catch (err) {
-      throw err;
-    }
-  }
-
-  async listAllUsers() {
-    try {
-      const allUsers = await User.find();
-      if (!allUsers) {
-        throw new Error("no users found");
-      }
-      return allUsers;
-    } catch (err) {
-      throw err;
-    }
-  }
-
-  async listAllPosts() {
-    try {
-      const allPosts = await Post.find().populate("owner", "username").exec();
-      if (!allPosts) {
-        throw new Error("no posts found");
-      }
-      return allPosts;
-    } catch (err) {
-      throw err;
-    }
-  }
-
-  async blockUser(userID) {
-    try {
-      const blockedUser = await User.findOneAndUpdate(
-        { _id: userID },
-        { status: "blocked" },
-        { new: true }
-      );
+      const values = req.body;
       
-      const deletedToken = await Token.deleteOne({_id: blockedUser._id}); 
-// CHECKKKKKKKKKKKKKKKKKKKKKKKK DELETEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE
-      return [blockedUser, deletedToken];
+      const admin = await login(values);
+      const [token, email, uuid, _id] = await admin.generateAuthToken();
+      console.log(token);
+      const tokenDoc = new Token({ email, uuid, user: _id });
+      await tokenDoc.save();
+  
+      res.send([token, tokenDoc]);
     } catch (err) {
-      throw err;
+      console.log(err.message);
     }
+
   }
 
-  async logout(tokenUUID) {
+  export const listAllUsers = async(req, res, next) => {
     try {
-      await Token.deleteOne({ uuid: tokenUUID });
-      return "admin logout successful";
+    
+      const allUsers = await listUsers();
+      res.send(allUsers);
     } catch (err) {
-      throw err;
+      res.send(err);
     }
+  
   }
-}
 
-module.exports = AdminController;
+  export const listAllPosts = async(req, res, next) => {
+    try {
+    
+      const allPosts = await listPosts();
+      res.send(allPosts);
+    } catch (err) {
+      res.send(err);
+    }
+   
+  }
+
+  export const blockUser = async(req, res, next) => {
+    try {
+      const userID = req.params.id;
+    
+      const [blockedUser, deletedToken] = block(userID);
+      res.send([blockedUser, deletedToken]);
+    } catch (err) {
+      console.log(err); // inside blockUser
+    }
+
+  }
+
+  export const adminLogout = async(req, res, next) => {
+    try {
+      const tokenUUID = req.token.uuid;
+      
+      const admin = await logout(tokenUUID);
+  
+      res.send(admin);
+    } catch (err) {
+      res.send(err.message);
+    }
+ 
+  }
+
+

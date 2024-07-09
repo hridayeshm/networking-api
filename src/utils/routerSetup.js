@@ -1,11 +1,11 @@
 import express from 'express';
-import userRouter from "../routers/userRouter";
-import postRouter from "../routers/postRouter";
-import commentRouter from "../routers/commentRouter";
-import likeRouter from "../routers/likeRouter";
-import adminRouter from "../routers/adminRouter";
-import followRouter from "../routers/followRouter";
-import eventRouter from "../routers/eventRouter";
+import userRouter from "../routers/userRouter.js";
+import postRouter from "../routers/postRouter.js";
+import commentRouter from "../routers/commentRouter.js";
+import likeRouter from "../routers/likeRouter.js";
+import adminRouter from "../routers/adminRouter.js";
+import followRouter from "../routers/followRouter.js";
+import eventRouter from "../routers/eventRouter.js";
 
 import '../db/db.js';
 import '../service/notificationMail.js';

@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
 const MongoURL =
   "mongodb+srv://Networking:mongoatlas123@cluster0.3ufawdp.mongodb.net/Networking-api?retryWrites=true&w=majority&appName=Cluster0";
 

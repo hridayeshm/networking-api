@@ -1,18 +1,17 @@
 import express from 'express';
 const router = express.Router();
 import auth from "../middlewares/auth.js";
-const PostController = require("../controllers/postController");
-const postController = new PostController();
+import {createPost, getAllPosts, getPostById, updatePost, deletePostById} from "../controllers/postController.js"
 
-router.post("/user/post", auth, postController.createPost);
+router.post("/user/post", auth, createPost);
 
-router.get("/user/post/all", auth, postController.getAllPosts);
+router.get("/user/post/all", auth, getAllPosts);
 
-router.get("/user/post/:id", auth, postController.getPostById);
+router.get("/user/post/:id", auth, getPostById);
 
-router.patch("/user/post/:id", auth, postController.updatePost);
+router.patch("/user/post/:id", auth, updatePost);
 
-router.delete("/user/post/:id", auth, postController.deletePost);
+router.delete("/user/post/:id", auth, deletePostById);
 
 
 export default router;

@@ -1,28 +1,31 @@
-import Like from "../models/likeModel";
-import Post from "../models/postModel";
+import { likeP, remove } from "../repositories/likeRepository.js";
 
-export const likePost = async (values) => {
+export const likePost = async (req, res, next) => {
   try {
-    const like = new Like(values);
-    await like.save();
-    await Post.findOneAndUpdate(
-      { _id: values.post },
-      { $inc: { likeCount: 1 } }
-    );
-    return like;
+    const values = {
+      post: req.params.id,
+      author: req.user._id,
+    };
+ 
+    const like = await likeP(values);
+    res.send(like);
   } catch (err) {
-    throw err;
+    res.send(err);
   }
+
 };
 
-export const removeLike = async (values) => {
+export const removeLike = async (req, res, next) => {
   try {
-    const removedLike = await Like.findOneAndDelete(values);
-    if (!removedLike) {
-      throw new Error("the post has not been liked before");
-    }
-    return removedLike;
+    const values = {
+      _id: req.params.id,
+      author: req.user._id,
+    };
+   
+    const removedLike = await remove(values);
+    res.send(removedLike);
   } catch (err) {
-    throw err;
+    res.send(err);
   }
+ 
 };

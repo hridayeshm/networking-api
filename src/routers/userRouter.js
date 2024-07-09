@@ -1,8 +1,8 @@
 import express from 'express';
 const router = express.Router();
 import { registerUser, loginUser, changePasssword, showFeed,verifyUser,logoutUser } from '../controllers/userController.js';
-
 import auth from "../middlewares/auth.js";
+
 // const CLIENT_ID = '373933302832';
 // const CLIENT_SECRET = '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';
 // const REDIRECT_URI = '<http://localhost:3000/auth/google/callback>';
@@ -17,19 +17,7 @@ router.patch("/user/change-password", auth, changePasssword);
 
 router.get("/user/feed", auth, showFeed);
 
-router.post("/user/logout", auth, async(req, res) => {
-  try{
-    const userID = req.user._id;
-    const tokenUUID = req.token.uuid;
-
-    const user = await userController.logoutUser(userID, tokenUUID);
-    
-    res.send(user);
-
-  }catch(err){
-    res.send(err.message);
-  }
-});
+router.post("/user/logout", auth, logoutUser);
 
 export default router;
 
