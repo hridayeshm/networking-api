@@ -1,0 +1,55 @@
+ type Query {
+    posts: [Post]
+    post(id: String): Post
+    
+    
+  }
+
+  type Post {
+    _id: ID
+    owner: User
+    title: String
+    description: String
+    commentCount: Int
+    likeCount: Int 
+    latestComments: [LatestComments]
+  }
+
+  type User {
+    id: ID
+    username: String
+    email: String
+    password: String
+    followers: [User]
+    followees: [User]
+    emailVerficationToken: String
+    mailVerifiedAt: String
+    status: String
+  }
+
+  type Comments {
+    id: ID
+    post: Post
+    author: User
+    content: String
+    createdAt: String
+
+  }
+
+  type LatestComments{
+    content: String
+    commentedBy: User
+  }
+
+  input UpdatePostInput{
+    title: String
+    description: String
+  }
+ 
+
+  type Mutation {
+   
+    updatePost(id: ID!, data: UpdatePostInput): Post
+    deletePost(id: ID!): Post
+  }
+

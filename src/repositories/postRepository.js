@@ -20,7 +20,7 @@ export const getAll = async (filter, options) => {
       {
         $lookup: {
           from: "users",
-          localField: "owner",
+          localField: "owner.id",
           foreignField: "_id",
           as: "postCreator",
         },

@@ -19,9 +19,7 @@ const postSchema = new mongoose.Schema(
     title: {
       type: String,
     },
-    picture: {
-      type: Buffer,
-    },
+ 
     commentCount: {
       type: Number,
       required: true,
