@@ -1,4 +1,6 @@
 import Post from "../models/postModel.js";
+import { registerUser } from "../service/userService.js";
+
 const resolvers = {
   Query: {
     async posts(parent, args, context, info) {
@@ -39,8 +41,11 @@ const resolvers = {
     async post(parent, args, context, info) {
         
          const foundPost = await Post.findById(args.id);
+         console.log(foundPost,"llll")
          return foundPost;
     },
+
+   
 
     
   },
@@ -52,6 +57,13 @@ const resolvers = {
         },{ new: true})
         console.log(updatedPost)
         return updatedPost
+    },
+
+    async registerUser(parent, args, context, info){
+      
+      const registeredUser = await registerUser(args);
+      console.log(registeredUser,"thisssss")
+      return registeredUser
     }
   }
 };

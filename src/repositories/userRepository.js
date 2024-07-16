@@ -6,7 +6,7 @@ import bcrypt from "bcrypt"
   export const register = async(values) => {
     try {
       const user = new User(values);
-
+      console.log(user)
       await user.save();
       return user;
     } catch (err) {
