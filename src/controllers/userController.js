@@ -1,9 +1,9 @@
 import bcrypt from 'bcrypt'
 import sendVerficationMail from "../service/verificationMail.js"
 import {register, verify, login, changePw, show} from "../repositories/userRepository.js";
-import {createToken} from "../repositories/tokenRepository.js"
+import {createTokenFromController} from "../repositories/tokenRepository.js"
 import { v4 as uuidv4 } from 'uuid';
-import { listFollowees, listFollowers, listNotifications, sendRequest } from '../repositories/followRepository.js'
+import { listFollowees, listFollowers, listNotifications, sendRequest, respond } from '../repositories/followRepository.js'
 import { add, create, list, participate } from '../repositories/eventRepository.js'
 
 
@@ -48,7 +48,8 @@ import { add, create, list, participate } from '../repositories/eventRepository.
       }
 
       const [token, email, uuid] = await user.generateAuthToken();
-      const tokenDoc = await createToken(email, uuid, user);
+      
+      const tokenDoc = await createTokenFromController(email, uuid, user);
 
       res.send([token, tokenDoc]);
     } catch (err) {
@@ -86,7 +87,7 @@ import { add, create, list, participate } from '../repositories/eventRepository.
   
   }
 
-  export const respond = async(req, res, next) => {
+  export const respondToRequest = async(req, res, next) => {
 
     try{
       const action = req.params.action;
@@ -94,6 +95,7 @@ import { add, create, list, participate } from '../repositories/eventRepository.
   
     
       const response = await respond(values, action);
+     
       res.send(response);
     }catch(err){
       res.send(err);

@@ -42,9 +42,9 @@ export const add = async (values, req) => {
   }
 };
 
-export const view = async (values) => {
+export const view = async (filter) => {
   try {
-    const comments = await Comment.find(values);
+    const comments = await Comment.find(filter);
     if (!comments) {
       throw new Error("no comments found for the post");
     }

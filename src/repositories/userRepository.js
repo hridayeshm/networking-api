@@ -3,10 +3,10 @@ import Post from "../models/postModel.js"
 import bcrypt from "bcrypt"
 
 
-  export const register = async(values) => {
+  export const register = async(userDetails) => {
     try {
-      const user = new User(values);
-      console.log(user)
+      const user = new User(userDetails);
+
       await user.save();
       return user;
     } catch (err) {
@@ -62,13 +62,14 @@ import bcrypt from "bcrypt"
     }
   }
 
-  export const show = async(values) => {
+  export const show = async(filter) => {
+  
     try {
-      const user = await User.findOne(values).populate("followees", "_id");
-      console.log(user);
-
+      const user = await User.findOne(filter).populate("followees", "_id");
+  
+      
       const posts = await Post.find({ owner: { $in: user.followees } }); // BECAUSE FOLLOWEES ONLY CONTAIN ID(selected)SO DIRECT PASS
-      // for populating comments also when getting posts, use virtual field
+      // for populating comments also when getting posts, use virtual field ????
       return posts;
     } catch (err) {
       throw err;

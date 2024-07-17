@@ -5,7 +5,7 @@ import { readFileSync } from "fs";
 import { fileURLToPath } from "url";
 import { dirname, join } from "path";
 import resolvers from "./graphql/resolvers.js";
-import * as db from './db/db.js'
+import * as db from "./db/db.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -22,9 +22,14 @@ app.use(express.json());
 app.use(routerSetup);
 
 async function startApolloServer() {
+  const server = new ApolloServer({
+    typeDefs,
+    resolvers,
+    context(request) {    
+      return request
+    },
+  });
 
-
-  const server = new ApolloServer({ typeDefs, resolvers });
   await server.start();
 
   server.applyMiddleware({ app });

@@ -1,8 +1,8 @@
  type Query {
     posts: [Post]
     post(id: String): Post
-   
-    
+    showFeed: Post
+    comments(id: String): [Comment]   
   }
 
   type Post {
@@ -22,18 +22,16 @@
     password: String
     followers: [User]
     followees: [User]
-    emailVerficationToken: String
+    emailVerificationToken: String
     mailVerifiedAt: String
     status: String
   }
 
-  type Comments {
+  type Comment {
     id: ID
     post: Post
     author: User
     content: String
-    createdAt: String
-
   }
 
   type LatestComments{
@@ -41,7 +39,12 @@
     commentedBy: User
   }
 
-  input UpdatePostInput{
+  input createPostInput{
+    title: String!
+    description: String!
+  }
+
+  input updatePostInput{
     title: String
     description: String
   }
@@ -51,11 +54,24 @@
     email: String
     password: String
   }
+
+  input loginUserInput{
+    email: String
+    password: String
+  }
+
+  type authPayload{
+    user: User
+    token: String
+  }
  
 
   type Mutation {
     registerUser(data: registerUserInput): User
-    updatePost(id: ID!, data: UpdatePostInput): Post
+    verifyUser(emailVerificationToken: String): User
+    loginUser(data: loginUserInput): authPayload
+    createPost(data: createPostInput): Post
+    updatePost(id: ID!, data: updatePostInput): Post
     deletePost(id: ID!): Post
   }
 

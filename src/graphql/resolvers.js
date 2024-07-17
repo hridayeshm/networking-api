@@ -1,5 +1,8 @@
 import Post from "../models/postModel.js";
-import { registerUser } from "../service/userService.js";
+import { verifyAuthToken } from "../service/authService.js";
+import { viewComments } from "../service/commentService.js";
+import { createPost } from "../service/postService.js";
+import { loginUser, registerUser, showFeed, verifyUser } from "../service/userService.js";
 
 const resolvers = {
   Query: {
@@ -39,33 +42,72 @@ const resolvers = {
     },
 
     async post(parent, args, context, info) {
-        
-         const foundPost = await Post.findById(args.id);
-         console.log(foundPost,"llll")
-         return foundPost;
+      const foundPost = await Post.findById(args.id);
+      console.log(foundPost, "llll");
+      return foundPost;
     },
 
-   
-
+    async showFeed(parent, args, request, info){
     
-  },
-  Mutation: {
-    async updatePost(parent, args, context, info){
-        console.log(args)
-        const updatedPost = await Post.findOneAndUpdate({_id: args.id},{
-            $set: {title: args.data.title, description:args.data.description}
-        },{ new: true})
-        console.log(updatedPost)
-        return updatedPost
+      const {user} = await verifyAuthToken(request);
+      const feed = await showFeed(user);
+      
+      return feed;
     },
 
-    async registerUser(parent, args, context, info){
-      
+    async comments(parent, args, request, info){
+      const {user} = await verifyAuthToken(request);
+      const comments = await viewComments(args);
+      return comments;
+    }
+  },
+
+  Mutation: {
+    async updatePost(parent, args, context, info) {
+      const updatedPost = await Post.findOneAndUpdate(
+        { _id: args.id },
+        {
+          $set: { title: args.data.title, description: args.data.description },
+        },
+        { new: true }
+      );
+  
+      return updatedPost;
+    },
+
+    async registerUser(parent, args, context, info) {
       const registeredUser = await registerUser(args);
-      console.log(registeredUser,"thisssss")
-      return registeredUser
+      return registeredUser;
+    },
+
+    async verifyUser(parent, args, context, info) {
+      const verifiedUser = await verifyUser(args);
+      return verifiedUser;
+    },
+
+    async loginUser(parent, args, context, info) {
+  
+      const loggedInUser = await loginUser(args);
+      return loggedInUser;
+    },
+
+    async createPost(parent, args, request, info) {
+      
+      const {user} = await verifyAuthToken(request);
+      const createdPost = await createPost(args, user);
+      return createdPost;
+    }
+  },
+
+  Comment: {
+    post: async(parent, args, context, info) => {
+
+    },
+    author: async(parent, args, context, info) => {
+
     }
   }
+
 };
 
 export default resolvers;
