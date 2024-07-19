@@ -60,7 +60,7 @@ export const showFeed = async(user) => {
     const filter = { _id: user._id};
     
     const feed = await show(filter);
-    console.log(feed)
+    
     return feed;
   } catch(err) {
 

@@ -1,7 +1,8 @@
 import Post from "../models/postModel.js";
+import User from "../models/userModel.js";
 import { verifyAuthToken } from "../service/authService.js";
 import { viewComments } from "../service/commentService.js";
-import { createPost } from "../service/postService.js";
+import { createPost, getPostByID } from "../service/postService.js";
 import { loginUser, registerUser, showFeed, verifyUser } from "../service/userService.js";
 
 const resolvers = {
@@ -34,7 +35,7 @@ const resolvers = {
             },
           },
         ]);
-        console.log(foundPosts);
+       
         return foundPosts;
       } catch (err) {
         throw err;
@@ -50,15 +51,21 @@ const resolvers = {
     async showFeed(parent, args, request, info){
     
       const {user} = await verifyAuthToken(request);
+     
       const feed = await showFeed(user);
       
       return feed;
     },
 
     async comments(parent, args, request, info){
+    try{
+
       const {user} = await verifyAuthToken(request);
       const comments = await viewComments(args);
       return comments;
+    } catch(err){
+      throw console.log(err);
+    }
     }
   },
 
@@ -100,11 +107,11 @@ const resolvers = {
   },
 
   Comment: {
-    post: async(parent, args, context, info) => {
-
-    },
+  
     author: async(parent, args, context, info) => {
-
+   
+      const author = await User.findOne({_id: parent.author})
+      return author
     }
   }
 

@@ -1,8 +1,8 @@
  type Query {
     posts: [Post]
     post(id: String): Post
-    showFeed: Post
-    comments(id: String): [Comment]   
+    showFeed: [Post]
+    comments(postID: String): [Comment]   
   }
 
   type Post {

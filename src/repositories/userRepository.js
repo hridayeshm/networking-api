@@ -65,11 +65,11 @@ import bcrypt from "bcrypt"
   export const show = async(filter) => {
   
     try {
-      const user = await User.findOne(filter).populate("followees", "_id");
+      const user = await User.findOne(filter).populate("followees", "_id"); //redundant because id is already present in followees array of user
   
-      
-      const posts = await Post.find({ owner: { $in: user.followees } }); // BECAUSE FOLLOWEES ONLY CONTAIN ID(selected)SO DIRECT PASS
-      // for populating comments also when getting posts, use virtual field ????
+      console.log(user.followees)
+      const posts = await Post.find({ 'owner.id': { $in: user.followees } }); // BECAUSE FOLLOWEES ONLY CONTAIN ID(selected)SO DIRECT PASS
+      // for populating comments also when getting posts, use virtual field ?????
       return posts;
     } catch (err) {
       throw err;

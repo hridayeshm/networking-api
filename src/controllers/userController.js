@@ -145,9 +145,9 @@ import { add, create, list, participate } from '../repositories/eventRepository.
 
   export const showFeed = async(req, res, next) => {
     try {
-      const values = { _id: req.user._id };
+      const filter = { _id: req.user._id };
    
-      const feed = await show(values);
+      const feed = await show(filter);
       res.send(feed);
     } catch (err) {
       res.send(err.message);
